@@ -1,7 +1,11 @@
-import { Response, Request } from 'express';
+import { Response, Request, NextFunction } from 'express';
 import { ProductService } from './product.service';
 
-const createProduct = async (req: Request, res: Response) => {
+const createProduct = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const productData = req.body;
     const result = await ProductService.createProductIntoDB(productData);
@@ -12,11 +16,7 @@ const createProduct = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Server Error',
-      error: error,
-    });
+    next(error);
   }
 };
 

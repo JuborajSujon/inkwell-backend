@@ -42,7 +42,7 @@ const productSchema = new Schema<TProduct>(
           // Check if the price is greater than or equal to 0
           return value >= 0;
         },
-        message: '{VALUE} must be greater than or equal to 0',
+        message: 'Price must be a positive number',
       },
     },
     category: {
@@ -73,7 +73,7 @@ const productSchema = new Schema<TProduct>(
           // Check if the quantity is greater than or equal to 0
           return value >= 0;
         },
-        message: '{VALUE} must be greater than or equal to 0',
+        message: 'Quantity must be a positive number',
       },
     },
     inStock: {

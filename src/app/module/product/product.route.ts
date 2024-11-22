@@ -3,5 +3,9 @@ import express from 'express';
 const router = express.Router();
 
 router.get('/');
+// router.post('/');
+// router.get('/:productId');
+// router.put('/:productId');
+// router.delete('/:productId');
 
-export default ProductRoutes = router;
+export const ProductRoutes = router;

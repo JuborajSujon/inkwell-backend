@@ -1,12 +1,12 @@
 import { Error } from 'mongoose';
-import { IErrorDetail, IErrorResponse } from './errorHander.interface';
+import { TErrorDetail, TErrorResponse } from './errorHander.interface';
 
 export const formatErrorResponse = (
   error: any,
   environment: string,
-): IErrorResponse => {
+): TErrorResponse => {
   let message = 'An unexpected error occurred';
-  let errorDetails: Record<string, IErrorDetail> | undefined;
+  let errorDetails: Record<string, TErrorDetail> | undefined;
   let name = 'UnknownError';
 
   // Handle Mongoose ValidationError
@@ -26,7 +26,7 @@ export const formatErrorResponse = (
         };
         return acc;
       },
-      {} as Record<string, IErrorDetail>,
+      {} as Record<string, TErrorDetail>,
     );
   }
   // Handle MongoDB Duplicate Key Error (code: 11000)

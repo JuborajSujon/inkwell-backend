@@ -1,4 +1,4 @@
-export interface IErrorDetail {
+export interface TErrorDetail {
   message: string;
   name?: string;
   properties?: Record<string, any>;
@@ -7,12 +7,12 @@ export interface IErrorDetail {
   value?: any;
 }
 
-export interface IErrorResponse {
-  message: string; // A brief error message
-  success: false; // Always false for errors
+export interface TErrorResponse {
+  message: string;
+  success: false;
   error: {
-    name: string; // The type of error (e.g., ValidationError)
-    errors?: Record<string, IErrorDetail>; // Detailed errors (e.g., field-specific)
+    name: string;
+    errors?: Record<string, TErrorDetail>;
   };
-  stack?: string; // Stack trace for debugging (optional in production)
+  stack?: string;
 }

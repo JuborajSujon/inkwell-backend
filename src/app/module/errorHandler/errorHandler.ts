@@ -1,7 +1,7 @@
 import { ErrorRequestHandler } from 'express';
 import { formatErrorResponse } from './errorFormatter';
 
-export const errorHandler: ErrorRequestHandler = (error, req, res, next) => {
+export const errorHandler: ErrorRequestHandler = (error, req, res) => {
   const environment = process.env.NODE_ENV || 'development';
 
   const response = formatErrorResponse(error, environment);

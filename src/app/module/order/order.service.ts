@@ -51,4 +51,7 @@ const calculateTotalRevenue = async () => {
   return totalRevenue;
 };
 
-export const OrderService = { createOrderIntoDB };
+export const OrderService = {
+  createOrderIntoDB,
+  calculateTotalRevenue,
+};

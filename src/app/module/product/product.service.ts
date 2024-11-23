@@ -27,7 +27,17 @@ const getAllProudctsFromDB = async (searchTerm?: string) => {
     return result;
   }
 };
+
+// Get specific product by id from the database
+const getProductByIdFromDB = async (id: string) => {
+  const result = await Product.findById(id);
+
+  if (!result) throw new Error('Product not found');
+  return result;
+};
+
 export const ProductService = {
   createProductIntoDB,
   getAllProudctsFromDB,
+  getProductByIdFromDB,
 };

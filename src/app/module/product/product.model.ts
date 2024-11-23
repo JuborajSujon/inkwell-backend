@@ -90,5 +90,16 @@ const productSchema = new Schema<TProduct>(
   },
 );
 
+// Advanced query methods using query middleware
+productSchema.pre('find', function (next) {
+  this.find({ isDeleted: { $ne: true } });
+  next();
+});
+
+productSchema.pre('findOne', function (next) {
+  this.findOne({ isDeleted: { $ne: true } });
+  next();
+});
+
 // Create the Mongoose model
 export const Product = model<TProduct>('Product', productSchema);

@@ -11,7 +11,7 @@ const createProduct = async (
     const productData = req.body;
     const result = await ProductService.createProductIntoDB(productData);
 
-    res.status(200).json({
+    res.status(201).json({
       message: 'Product created successfully',
       success: true,
       data: result,
@@ -35,11 +35,20 @@ const getAllProducts = async (
       searchTerm as string,
     );
 
-    res.status(200).json({
-      message: 'Products retrieved successfully',
-      success: true,
-      data: result,
-    });
+    // if no products found in the database
+    if (result.length === 0) {
+      res.status(404).json({
+        message: 'Products not found',
+        success: false,
+        data: result,
+      });
+    } else {
+      res.status(200).json({
+        message: 'Products retrieved successfully',
+        success: true,
+        data: result,
+      });
+    }
   } catch (error) {
     next(error);
   }

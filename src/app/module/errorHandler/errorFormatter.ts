@@ -1,10 +1,7 @@
 import { Error } from 'mongoose';
 import { TErrorDetail, TErrorResponse } from './errorHander.interface';
 
-export const formatErrorResponse = (
-  error: any,
-  environment: string,
-): TErrorResponse => {
+export const formatErrorResponse = (error: any): TErrorResponse => {
   let message = 'An unexpected error occurred';
   let errorDetails: Record<string, TErrorDetail> | undefined;
   let name = 'UnknownError';
@@ -48,6 +45,6 @@ export const formatErrorResponse = (
       name,
       errors: errorDetails,
     },
-    stack: environment === 'production' ? undefined : error.stack,
+    stack: error.stack,
   };
 };

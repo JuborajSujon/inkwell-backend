@@ -24,13 +24,13 @@ const getAllProudctsFromDB = async (searchTerm?: string) => {
   }
 
   // find products with the search term
-  const result = await Product.find(query);
+  const result = await Product.find(query).select('-isDeleted');
   return result;
 };
 
 // Get specific product by id from the database
 const getProductByIdFromDB = async (id: string) => {
-  const result = await Product.findById(id);
+  const result = await Product.findById(id).select('-isDeleted');
 
   // if product not found
   if (!result) throw new Error('Product not found');

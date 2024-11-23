@@ -55,10 +55,10 @@ const updatedProductInDB = async (
 
 // Delete specific product by id from the database
 const deleteProductByIdFromDB = async (id: string) => {
-  const result = await Product.updateOne({ id }, { isDeleted: true });
+  const result = await Product.updateOne({ _id: id }, { isDeleted: true });
 
   // if product not found
-  if (!result) throw new Error('Product not found');
+  if (result.matchedCount === 0) throw new Error('Product not found');
 
   return result;
 };

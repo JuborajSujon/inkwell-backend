@@ -1,3 +1,4 @@
+import { NotFoundError } from '../errorHandler/customErrors';
 import { TProduct } from './product.interface';
 import { Product } from './product.model';
 
@@ -9,7 +10,7 @@ const createProductIntoDB = async (productData: TProduct) => {
 
 // Get all products with if query search term is provided
 const getAllProudctsFromDB = async (searchTerm?: string) => {
-  const query: Record<string, any> = {};
+  const query: Record<string, unknown> = {};
 
   // if search term is provided
   if (searchTerm) {
@@ -33,7 +34,7 @@ const getProductByIdFromDB = async (id: string) => {
   const result = await Product.findById(id).select('-isDeleted');
 
   // if product not found
-  if (!result) throw new Error('Product not found');
+  if (!result) throw new NotFoundError('Product not found');
   return result;
 };
 
@@ -48,7 +49,7 @@ const updatedProductInDB = async (
   });
 
   // if product not found
-  if (!updatedProduct) throw new Error('Product not found');
+  if (!updatedProduct) throw new NotFoundError('Product not found');
 
   return updatedProduct;
 };
@@ -58,7 +59,7 @@ const deleteProductByIdFromDB = async (id: string) => {
   const result = await Product.updateOne({ _id: id }, { isDeleted: true });
 
   // if product not found
-  if (result.matchedCount === 0) throw new Error('Product not found');
+  if (result.matchedCount === 0) throw new NotFoundError('Product not found');
 
   return result;
 };

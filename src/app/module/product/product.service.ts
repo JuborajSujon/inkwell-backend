@@ -9,7 +9,7 @@ const createProductIntoDB = async (productData: TProduct) => {
 
 // Get all products with if query search term is provided
 const getAllProudctsFromDB = async (searchTerm?: string) => {
-  const query = {};
+  const query: Record<string, any> = {};
 
   // if search term is provided
   if (searchTerm) {
@@ -21,11 +21,11 @@ const getAllProudctsFromDB = async (searchTerm?: string) => {
         { category: { $regex: regex } },
       ],
     });
-
-    // find products with the search term
-    const result = await Product.find(query);
-    return result;
   }
+
+  // find products with the search term
+  const result = await Product.find(query);
+  return result;
 };
 
 // Get specific product by id from the database

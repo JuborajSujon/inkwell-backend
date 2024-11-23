@@ -13,4 +13,5 @@ export type TProduct = {
   inStock: boolean;
   createdAt?: Date;
   updatedAt?: Date;
+  isDeleted?: boolean;
 };

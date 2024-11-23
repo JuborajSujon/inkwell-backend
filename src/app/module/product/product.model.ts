@@ -80,6 +80,10 @@ const productSchema = new Schema<TProduct>(
       type: Boolean,
       required: [true, 'Product inStock is required'],
     },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

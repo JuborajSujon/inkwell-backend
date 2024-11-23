@@ -36,8 +36,24 @@ const getProductByIdFromDB = async (id: string) => {
   return result;
 };
 
+// Update specific product by id from the database
+const updatedProductInDB = async (
+  id: string,
+  updateData: Partial<TProduct>,
+) => {
+  const updatedProduct = await Product.findByIdAndUpdate(id, updateData, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (!updatedProduct) throw new Error('Product not found');
+
+  return updatedProduct;
+};
+
 export const ProductService = {
   createProductIntoDB,
   getAllProudctsFromDB,
   getProductByIdFromDB,
+  updatedProductInDB,
 };

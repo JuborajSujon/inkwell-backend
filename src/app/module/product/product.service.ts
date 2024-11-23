@@ -68,4 +68,5 @@ export const ProductService = {
   getAllProudctsFromDB,
   getProductByIdFromDB,
   updatedProductInDB,
+  deleteProductByIdFromDB,
 };

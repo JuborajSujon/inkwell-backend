@@ -1,6 +1,10 @@
 import { Order } from './order.model';
 import { Product } from '../product/product.model';
 import { TOrder } from './order.interface';
+import {
+  InsufficientStockError,
+  NotFoundError,
+} from '../errorHandler/customErrors';
 
 // Create a new order
 const createOrderIntoDB = async (orderData: TOrder) => {
@@ -8,11 +12,11 @@ const createOrderIntoDB = async (orderData: TOrder) => {
   const product = await Product.findById(orderData.product);
 
   // if product not found
-  if (!product) throw new Error('Product not found');
+  if (!product) throw new NotFoundError('Product not found');
 
   // check stock availability
   if (product.quantity < orderData.quantity)
-    throw new Error('Insufficient stock');
+    throw new InsufficientStockError('Insufficient stock');
 
   // calculate total price of the order if total price is not provided
   const totalPrice = orderData.totalPrice || orderData.quantity * product.price;

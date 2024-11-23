@@ -14,8 +14,8 @@ const createOrderIntoDB = async (orderData: TOrder) => {
   if (product.quantity < orderData.quantity)
     throw new Error('Insufficient stock');
 
-  // calculate total price of the order
-  const totalPrice = orderData.quantity * product.price;
+  // calculate total price of the order if total price is not provided
+  const totalPrice = orderData.totalPrice || orderData.quantity * product.price;
 
   // create new order in the database
   const order = await Order.create({

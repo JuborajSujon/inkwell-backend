@@ -14,4 +14,5 @@ export const errorHandler: ErrorRequestHandler = (
   // Set appropriate status code
   const statusCode = error.status || 500;
   res.status(statusCode).json(response);
+  void next;
 };

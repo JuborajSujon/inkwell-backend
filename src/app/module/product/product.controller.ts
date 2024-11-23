@@ -38,7 +38,7 @@ const getAllProducts = async (
     // if no products found in the database
     if (result.length === 0) {
       res.status(404).json({
-        message: 'Products not found',
+        message: 'Resource not found',
         success: false,
         data: result,
       });

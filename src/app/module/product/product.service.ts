@@ -34,7 +34,7 @@ const getProductByIdFromDB = async (id: string) => {
   const result = await Product.findById(id).select('-isDeleted');
 
   // if product not found
-  if (!result) throw new NotFoundError('Product not found');
+  if (!result) throw new NotFoundError('Resource not found');
   return result;
 };
 
@@ -49,7 +49,7 @@ const updatedProductInDB = async (
   });
 
   // if product not found
-  if (!updatedProduct) throw new NotFoundError('Product not found');
+  if (!updatedProduct) throw new NotFoundError('Resource not found');
 
   return updatedProduct;
 };

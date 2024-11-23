@@ -3,7 +3,7 @@ import { Product } from '../product/product.model';
 import { TOrder } from './order.interface';
 
 // Create a new order
-export const createOrderIntoDB = async (orderData: TOrder) => {
+const createOrderIntoDB = async (orderData: TOrder) => {
   // get product from the database
   const product = await Product.findById(orderData.product);
 
@@ -32,3 +32,5 @@ export const createOrderIntoDB = async (orderData: TOrder) => {
 
   return order;
 };
+
+export const OrderService = { createOrderIntoDB };

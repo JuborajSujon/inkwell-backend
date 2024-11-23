@@ -46,3 +46,6 @@ const orderSchema = new Schema<TOrder>(
     timestamps: true,
   },
 );
+
+// Create the Mongoose model
+export const Order = mongoose.model<TOrder>('Order', orderSchema);

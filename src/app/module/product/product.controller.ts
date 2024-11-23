@@ -107,4 +107,5 @@ export const ProductController = {
   createProduct,
   getAllProducts,
   getProductById,
+  updateProduct,
 };

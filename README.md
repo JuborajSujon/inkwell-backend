@@ -60,7 +60,7 @@ Ensure you have the following dependencies installed:
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/stationery-shop.git
+git clone https://github.com/JuborajSujon/stationery-shop
 ```
 
 2. Navigate to the project directory:

@@ -95,7 +95,7 @@ const updateProduct = async (
     // if product not found in the database
     if (!updatedProduct) {
       res.status(404).json({
-        message: 'Product not found',
+        message: 'Resource not found',
         success: false,
         data: null,
       });

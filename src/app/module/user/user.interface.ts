@@ -1,3 +1,5 @@
+import { USER_ROLE } from './user.constant';
+
 type Role = 'user' | 'admin';
 type Status = 'active' | 'inactive';
 
@@ -12,3 +14,5 @@ export interface IUser {
   updatedAt?: Date;
   isBlocked?: boolean;
 }
+
+export type TUserRole = keyof typeof USER_ROLE;

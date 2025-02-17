@@ -6,6 +6,11 @@ import { ProductRoutes } from '../module/product/product.route';
 const router = Router();
 
 const moduleRoutes = [
+  // {
+  //   path: '/auth'
+  //   route: AuthRoutes,
+  // },
+
   {
     path: '/users',
     route: UserRoutes,

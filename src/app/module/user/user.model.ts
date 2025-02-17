@@ -23,6 +23,7 @@ const userSchema = new Schema<TUser, UserModel>(
     },
     photo: {
       type: String,
+      default: '',
     },
     role: {
       type: String,
@@ -36,6 +37,7 @@ const userSchema = new Schema<TUser, UserModel>(
     },
     shippingAddress: {
       type: String,
+      default: '',
     },
     isBlocked: {
       type: Boolean,

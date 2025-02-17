@@ -2,6 +2,7 @@ import { model, Schema } from 'mongoose';
 import { TUser, UserModel } from './user.interface';
 import { USER_ROLE } from './user.constant';
 import bcrypt from 'bcrypt';
+import config from '../../config';
 
 const userSchema = new Schema<TUser, UserModel>(
   {
@@ -55,7 +56,16 @@ userSchema.pre('save', async function (next) {
   // eslint-disable-next-line @typescript-eslint/no-this-alias
   const user = this;
   // hashing password before saving
-  user.password = await bcrypt.hash(user.password, 10);
+  user.password = await bcrypt.hash(
+    user.password,
+    Number(config.bcrypt_salt_rounds),
+  );
+  next();
+});
+
+// use hook to empty password before sending response
+userSchema.post('save', function (doc, next) {
+  doc.password = '';
   next();
 });
 

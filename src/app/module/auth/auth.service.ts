@@ -5,6 +5,12 @@ import { TLoginUser } from './auth.interface';
 import { TUser } from '../user/user.interface';
 
 const registerUser = async (payload: TUser) => {
+  //check if the user exists
+  const user = await User.isUserExistByEmail(payload?.email);
+
+  if (user) throw new AppError(status.CONFLICT, 'User already exists !');
+
+  // create a new user
   const result = await User.create(payload);
 
   return result;

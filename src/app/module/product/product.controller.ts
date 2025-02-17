@@ -1,149 +1,126 @@
-import { Response, Request, NextFunction } from 'express';
+import { Response, Request } from 'express';
 import { ProductService } from './product.service';
+import catchAsync from '../../utils/CatchAsync';
+import sendResponse from '../../utils/sendResponse';
+import status from 'http-status';
 
 // Create a new product
-const createProduct = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const productData = req.body;
-    const result = await ProductService.createProductIntoDB(productData);
+const createProduct = catchAsync(async (req: Request, res: Response) => {
+  // Get product data from request body
+  const productData = req.body;
+  const result = await ProductService.createProductIntoDB(productData);
 
-    res.status(201).json({
-      message: 'Product created successfully',
-      success: true,
-      data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+  // Send response
+  sendResponse(res, {
+    statusCode: status.CREATED,
+    success: true,
+    message: 'Product created successfully',
+    data: result,
+  });
+});
 
 // Get all products
-const getAllProducts = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const { searchTerm } = req.query;
+const getAllProducts = catchAsync(async (req: Request, res: Response) => {
+  // Get search term from query parameters
+  const { searchTerm } = req.query;
 
-    // Fetch products from the database
-    const result = await ProductService.getAllProudctsFromDB(
-      searchTerm as string,
-    );
+  // Fetch products from the database
+  const result = await ProductService.getAllProudctsFromDB(
+    searchTerm as string,
+  );
 
-    // if no products found in the database
-    if (result.length === 0) {
-      res.status(404).json({
-        message: 'Resource not found',
-        success: false,
-        data: result,
-      });
-    } else {
-      res.status(200).json({
-        message: 'Products retrieved successfully',
-        success: true,
-        data: result,
-      });
-    }
-  } catch (error) {
-    next(error);
-  }
-};
-
-// Get a specific product by id
-const getProductById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const { productId } = req.params;
-
-    // Fetch product from the database
-    const result = await ProductService.getProductByIdFromDB(productId);
-
-    res.status(200).json({
-      message: 'Products retrieved successfully',
-      success: true,
+  // if no products found in the database
+  if (result.length === 0) {
+    sendResponse(res, {
+      statusCode: status.NOT_FOUND,
+      success: false,
+      message: 'No products found',
       data: result,
     });
-  } catch (error) {
-    next(error);
+  } else {
+    sendResponse(res, {
+      statusCode: status.OK,
+      success: true,
+      message: 'Products retrieved successfully',
+      data: result,
+    });
   }
-};
+});
+
+// Get a specific product by id
+const getProductById = catchAsync(async (req: Request, res: Response) => {
+  const { productId } = req.params;
+
+  // Fetch product from the database
+  const result = await ProductService.getProductByIdFromDB(productId);
+
+  // Send response
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Product retrieved successfully',
+    data: result,
+  });
+});
 
 // Update a specific product by id
-const updateProduct = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const { productId } = req.params;
-    const updateData = req.body;
+const updateProduct = catchAsync(async (req: Request, res: Response) => {
+  // Get product data from request body
+  const { productId } = req.params;
+  const updateData = req.body;
 
-    // Update product in the database
-    const updatedProduct = await ProductService.updatedProductInDB(
-      productId,
-      updateData,
-    );
+  // Update product in the database
+  const updatedProduct = await ProductService.updatedProductInDB(
+    productId,
+    updateData,
+  );
 
-    // if product not found in the database
-    if (!updatedProduct) {
-      res.status(404).json({
-        message: 'Resource not found',
-        success: false,
-        data: null,
-      });
-    }
-
-    // if product found in the database
-    res.status(200).json({
-      message: 'Product updated successfully',
-      success: true,
-      data: updatedProduct,
+  // if product not found in the database
+  if (!updatedProduct) {
+    sendResponse(res, {
+      statusCode: status.NOT_FOUND,
+      success: false,
+      message: 'Resource not found',
+      data: null,
     });
-  } catch (error) {
-    next(error);
   }
-};
+
+  // if product found in the database
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Product updated successfully',
+    data: updatedProduct,
+  });
+});
 
 // Delete a specific product by id
-const deleteProduct = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const { productId } = req.params;
+const deleteProduct = catchAsync(async (req: Request, res: Response) => {
+  // Get product id from request params
+  const { productId } = req.params;
 
-    // Delete product from the database
-    const deletedProduct =
-      await ProductService.deleteProductByIdFromDB(productId);
+  // Delete product from the database
+  const deletedProduct =
+    await ProductService.deleteProductByIdFromDB(productId);
 
-    // if product not found in the database
-    if (!deletedProduct) {
-      res.status(404).json({
-        message: 'Product not found',
-        success: false,
-        data: null,
-      });
-    }
-
-    // if product found in the database
-    res.status(200).json({
-      message: 'Product deleted successfully',
-      success: true,
-      data: {},
+  // if product not found in the database
+  if (!deletedProduct) {
+    sendResponse(res, {
+      statusCode: status.NOT_FOUND,
+      success: false,
+      message: 'Product not found',
+      data: null,
     });
-  } catch (error) {
-    next(error);
   }
-};
+
+  // if product found in the database
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Product deleted successfully',
+    data: {},
+  });
+});
 
 export const ProductController = {
   createProduct,

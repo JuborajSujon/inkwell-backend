@@ -1,4 +1,5 @@
-import { NotFoundError } from '../errorHandler/customErrors';
+import status from 'http-status';
+import AppError from '../../errors/AppError';
 import { TProduct } from './product.interface';
 import { Product } from './product.model';
 
@@ -34,7 +35,8 @@ const getProductByIdFromDB = async (id: string) => {
   const result = await Product.findById(id).select('-isDeleted');
 
   // if product not found
-  if (!result) throw new NotFoundError('Resource not found');
+  if (!result) throw new AppError(status.NOT_FOUND, 'Resource not found');
+
   return result;
 };
 
@@ -49,7 +51,8 @@ const updatedProductInDB = async (
   });
 
   // if product not found
-  if (!updatedProduct) throw new NotFoundError('Resource not found');
+  if (!updatedProduct)
+    throw new AppError(status.NOT_FOUND, 'Resource not found');
 
   return updatedProduct;
 };
@@ -59,7 +62,8 @@ const deleteProductByIdFromDB = async (id: string) => {
   const result = await Product.updateOne({ _id: id }, { isDeleted: true });
 
   // if product not found
-  if (result.matchedCount === 0) throw new NotFoundError('Resource not found');
+  if (result.matchedCount === 0)
+    throw new AppError(status.NOT_FOUND, 'Resource not found');
 
   return result;
 };

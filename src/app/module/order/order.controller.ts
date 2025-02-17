@@ -1,43 +1,40 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 
 import { OrderService } from './order.service';
+import catchAsync from '../../utils/CatchAsync';
+import sendResponse from '../../utils/sendResponse';
+import status from 'http-status';
 
 // Create a new order
-const createOrder = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const orderData = req.body;
+const createOrder = catchAsync(async (req: Request, res: Response) => {
+  // Get order data from request body
+  const orderData = req.body;
 
-    // Create a new order
-    const result = await OrderService.createOrderIntoDB(orderData);
-    res.status(200).json({
-      message: 'Order created successfully',
-      success: true,
-      data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+  // Create a new order
+  const result = await OrderService.createOrderIntoDB(orderData);
+
+  // Send response
+  sendResponse(res, {
+    statusCode: status.CREATED,
+    success: true,
+    message: 'Order created successfully',
+    data: result,
+  });
+});
 
 // calculate order revenue
-const calculateRevenue = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    // get total revenue
-    const result = await OrderService.calculateTotalRevenue();
+const calculateRevenue = catchAsync(async (req: Request, res: Response) => {
+  // get total revenue
+  const result = await OrderService.calculateTotalRevenue();
 
-    res.status(200).json({
-      message: 'Order created successfully',
-      success: true,
-      data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+  // Send response
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Order created successfully',
+    data: result,
+  });
+});
 
 export const OrderController = {
   createOrder,

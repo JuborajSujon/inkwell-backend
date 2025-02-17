@@ -1,6 +1,7 @@
 import { model, Schema } from 'mongoose';
 import { TUser, UserModel } from './user.interface';
 import { USER_ROLE } from './user.constant';
+import bcrypt from 'bcrypt';
 
 const userSchema = new Schema<TUser, UserModel>(
   {
@@ -48,6 +49,15 @@ const userSchema = new Schema<TUser, UserModel>(
     timestamps: true,
   },
 );
+
+// use hook to hash password before saving user
+userSchema.pre('save', async function (next) {
+  // eslint-disable-next-line @typescript-eslint/no-this-alias
+  const user = this;
+  // hashing password before saving
+  user.password = await bcrypt.hash(user.password, 10);
+  next();
+});
 
 // find user by using email
 userSchema.statics.isUserExistByEmail = async function (email: string) {

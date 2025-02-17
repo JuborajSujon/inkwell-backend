@@ -21,6 +21,9 @@ const userSchema = new Schema<TUser, UserModel>(
       required: true,
       select: false,
     },
+    photo: {
+      type: String,
+    },
     role: {
       type: String,
       enum: [USER_ROLE.user, USER_ROLE.admin],

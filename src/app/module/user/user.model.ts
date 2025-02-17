@@ -1,8 +1,8 @@
 import { model, Schema } from 'mongoose';
-import { IUser } from './user.interface';
+import { TUser, UserModel } from './user.interface';
 import { USER_ROLE } from './user.constant';
 
-const userSchema = new Schema<IUser>(
+const userSchema = new Schema<TUser, UserModel>(
   {
     name: {
       type: String,
@@ -44,4 +44,9 @@ const userSchema = new Schema<IUser>(
   },
 );
 
-export const User = model<IUser>('User', userSchema);
+// find user by using email
+userSchema.statics.isUserExistByEmail = async function (email: string) {
+  return await this.findOne({ email }).select('+password');
+};
+
+export const User = model<TUser, UserModel>('User', userSchema);

@@ -33,3 +33,14 @@ process.on('unhandledRejection', (error) => {
     process.exit(1);
   }
 });
+
+process.on('uncaughtException', (error) => {
+  console.log(`😡 uncaughtException is detected, shutting down the server`);
+  if (server) {
+    server.close(() => {
+      process.exit(1);
+    });
+  } else {
+    process.exit(1);
+  }
+});

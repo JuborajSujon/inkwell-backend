@@ -9,7 +9,7 @@ export interface TUser {
   name: string;
   email: string;
   password: string;
-  photo?: string;
+  photo?: string | null;
   role: Role;
   status: Status;
   shippingAddress?: string;

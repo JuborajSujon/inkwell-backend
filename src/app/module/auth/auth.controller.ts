@@ -3,6 +3,7 @@ import catchAsync from '../../utils/CatchAsync';
 import sendResponse from '../../utils/sendResponse';
 import { AuthService } from './auth.service';
 import config from '../../config';
+import { JwtPayload } from 'jsonwebtoken';
 
 const loginUser = catchAsync(async (req, res) => {
   // Login user
@@ -39,6 +40,7 @@ const registerUser = catchAsync(async (req, res) => {
   });
 });
 
+// change password
 const changePassword = catchAsync(async (req, res) => {
   const { ...passwordData } = req.body;
   await AuthService.changePassword(req?.user as JwtPayload, passwordData);
@@ -51,8 +53,22 @@ const changePassword = catchAsync(async (req, res) => {
   });
 });
 
+// refresh token
+const refreshToken = catchAsync(async (req, res) => {
+  const { refreshToken } = req.cookies;
+  const result = await AuthService.refreshToken(refreshToken);
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Access token is retrieved succesfully!',
+    data: result,
+  });
+});
+
 export const AuthControllers = {
   loginUser,
   registerUser,
   changePassword,
+  refreshToken,
 };

@@ -5,7 +5,7 @@ import { TLoginUser } from './auth.interface';
 import { TUser } from '../user/user.interface';
 import { createToken } from './auth.utils';
 import config from '../../config';
-import { JwtPayload } from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 
 // create a new user
@@ -116,8 +116,68 @@ const changePassword = async (
   return null;
 };
 
+// refresh token
+const refreshToken = async (token: string) => {
+  // checking if token is valid
+  const decoded = jwt.verify(
+    token,
+    config.jwt_refresh_secret as string,
+  ) as JwtPayload;
+
+  const { email, iat } = decoded;
+
+  // check if the user exists
+  const user = await User.isUserExistByEmail(email);
+  if (!user) {
+    throw new AppError(status.NOT_FOUND, 'This user is not found !');
+  }
+
+  // checking if  the  user is already blocked
+  const isBlocked = user?.isBlocked;
+  if (isBlocked) {
+    throw new AppError(status.FORBIDDEN, 'This user is already deleted !');
+  }
+
+  // checking if the user is blocked
+  const userStatus = user?.status;
+  if (userStatus === 'inactive') {
+    throw new AppError(status.FORBIDDEN, 'This user is not active !');
+  }
+
+  // check if jwt issued timestamp less then password change timestamp
+
+  if (
+    user.passwordChangedAt &&
+    User.isJwtIssuedBeforePasswordChange(user.passwordChangedAt, iat as number)
+  ) {
+    throw new AppError(
+      status.UNAUTHORIZED,
+      "You're unauthrized to perform this action!",
+    );
+  }
+
+  const jwtPayload = {
+    email: user?.email,
+    role: user?.role,
+  };
+
+  // Access Granted : Send Access Token and Refresh Token
+
+  // create token and send to the client
+  const accessToken = createToken(
+    jwtPayload,
+    config.jwt_access_secret as string,
+    config.jwt_access_expires_in as string,
+  );
+
+  return {
+    accessToken,
+  };
+};
+
 export const AuthService = {
   registerUser,
   loginUser,
   changePassword,
+  refreshToken,
 };

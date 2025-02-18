@@ -14,8 +14,8 @@ const loginUser = catchAsync(async (req, res) => {
   res.cookie('refreshToken', refreshToken, {
     secure: config.NODE_ENV === 'development',
     httpOnly: true,
-    sameSite: 'none',
-    maxAge: 1000 * 60 * 60 * 365,
+    sameSite: config.NODE_ENV === 'development' ? 'none' : 'lax',
+    maxAge: 1000 * 60 * 60 * 24 * 7,
   });
 
   // Send Response
@@ -90,6 +90,33 @@ const resetPassword = catchAsync(async (req, res) => {
   });
 });
 
+const logoutUser = catchAsync(async (req, res) => {
+  const { refreshToken } = req.cookies;
+
+  if (!refreshToken) {
+    return sendResponse(res, {
+      statusCode: status.BAD_REQUEST,
+      success: false,
+      message: 'Refresh token not found',
+      data: null,
+    });
+  }
+  await AuthService.logoutUser(refreshToken);
+
+  res.clearCookie('refreshToken', {
+    secure: config.NODE_ENV === 'development',
+    httpOnly: true,
+    sameSite: config.NODE_ENV === 'development' ? 'none' : 'lax',
+  });
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'User is logged out successfully!',
+    data: null,
+  });
+});
+
 export const AuthControllers = {
   loginUser,
   registerUser,
@@ -97,4 +124,5 @@ export const AuthControllers = {
   refreshToken,
   forgetPassword,
   resetPassword,
+  logoutUser,
 };

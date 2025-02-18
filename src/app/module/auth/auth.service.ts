@@ -270,6 +270,15 @@ const resetPassword = async (
   );
 };
 
+const logoutUser = async (refreshToken: string) => {
+  const result = await User.findOneAndUpdate(
+    { refreshToken },
+    { refreshToken: null },
+    { new: true },
+  );
+  return result;
+};
+
 export const AuthService = {
   registerUser,
   loginUser,
@@ -277,4 +286,5 @@ export const AuthService = {
   refreshToken,
   forgetPassword,
   resetPassword,
+  logoutUser,
 };

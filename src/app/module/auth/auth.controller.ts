@@ -5,8 +5,8 @@ import { AuthService } from './auth.service';
 import config from '../../config';
 import { JwtPayload } from 'jsonwebtoken';
 
+// Login user
 const loginUser = catchAsync(async (req, res) => {
-  // Login user
   const result = await AuthService.loginUser(req.body);
 
   const { accessToken, refreshToken } = result;
@@ -27,8 +27,8 @@ const loginUser = catchAsync(async (req, res) => {
   });
 });
 
+// Register user
 const registerUser = catchAsync(async (req, res) => {
-  // Register user
   const result = await AuthService.registerUser(req.body);
 
   // Send Response
@@ -66,9 +66,22 @@ const refreshToken = catchAsync(async (req, res) => {
   });
 });
 
+// forget password
+const forgetPassword = catchAsync(async (req, res) => {
+  const email = req.body.email;
+  const result = await AuthService.forgetPassword(email);
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Reset link is generated succesfully! And sent to your email',
+    data: result,
+  });
+});
+
 export const AuthControllers = {
   loginUser,
   registerUser,
   changePassword,
   refreshToken,
+  forgetPassword,
 };

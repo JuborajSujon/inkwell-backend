@@ -39,7 +39,20 @@ const registerUser = catchAsync(async (req, res) => {
   });
 });
 
+const changePassword = catchAsync(async (req, res) => {
+  const { ...passwordData } = req.body;
+  await AuthService.changePassword(req?.user as JwtPayload, passwordData);
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'User is changed password succesfully!',
+    data: null,
+  });
+});
+
 export const AuthControllers = {
   loginUser,
   registerUser,
+  changePassword,
 };

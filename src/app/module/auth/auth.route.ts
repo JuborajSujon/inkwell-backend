@@ -5,12 +5,16 @@ import { AuthValidations } from './auth.validation';
 
 const router = Router();
 
-// router.post('./login');
-
 router.post(
   '/register',
   validateRequest(AuthValidations.registerUserValidationSchema),
   AuthControllers.registerUser,
+);
+
+router.post(
+  '/login',
+  validateRequest(AuthValidations.loginValidatioinSchema),
+  AuthControllers.loginUser,
 );
 
 export const AuthRoutes = router;

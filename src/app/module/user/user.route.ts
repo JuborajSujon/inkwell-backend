@@ -20,6 +20,13 @@ router.post(
   validateRequest(UserValidation.changeStatusValidationSchema),
   UserController.changeStatus,
 );
+
+router.patch(
+  '/update-profile/:userId',
+  auth(USER_ROLE.admin, USER_ROLE.user),
+  validateRequest(UserValidation.updateProfileValidationSchema),
+  UserController.updateProfile,
+);
 router.get(
   '/:userId',
   auth(USER_ROLE.admin, USER_ROLE.user),

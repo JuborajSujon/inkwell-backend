@@ -1,3 +1,4 @@
+import { TUser } from './user.interface';
 import { User } from './user.model';
 
 const getSingleUserFromDB = async (userId: string) => {
@@ -20,9 +21,15 @@ const blockUser = async (id: string, payload: { isBlocked: boolean }) => {
   return result;
 };
 
+const updateProfile = async (id: string, payload: Partial<TUser>) => {
+  const result = await User.findByIdAndUpdate(id, payload, { new: true });
+  return result;
+};
+
 export const UserServices = {
   getSingleUserFromDB,
   getAllUsersFromDB,
   changeStatus,
   blockUser,
+  updateProfile,
 };

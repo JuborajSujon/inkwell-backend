@@ -13,7 +13,24 @@ const changeBlockValidationSchema = z.object({
   }),
 });
 
+const updateProfileValidationSchema = z.object({
+  body: z.object({
+    name: z.string({ required_error: 'Name is required' }).optional(),
+    shippingAddress: z
+      .string({ required_error: 'Shipping address is required' })
+      .optional(),
+  }),
+});
+
+const updatePhotoValidationSchema = z.object({
+  body: z.object({
+    photo: z.string({ required_error: 'Photo is required' }).optional(),
+  }),
+});
+
 export const UserValidation = {
   changeStatusValidationSchema,
   changeBlockValidationSchema,
+  updateProfileValidationSchema,
+  updatePhotoValidationSchema,
 };

@@ -74,4 +74,21 @@ userSchema.statics.isUserExistByEmail = async function (email: string) {
   return await this.findOne({ email }).select('+password');
 };
 
+// Check if password is correct or not
+userSchema.statics.isPasswordMatched = async function (
+  plainTextPassword: string,
+  hashedPassword: string,
+) {
+  return await bcrypt.compare(plainTextPassword, hashedPassword);
+};
+
+// check if jwt is issued before password change
+userSchema.statics.isJwtIssuedBeforePasswordChange = function (
+  passwordChangeTimestamp: Date,
+  jwtIssuedTimestamp: number,
+) {
+  const passwordChangeTime = new Date(passwordChangeTimestamp).getTime() / 1000;
+  return passwordChangeTime > jwtIssuedTimestamp;
+};
+
 export const User = model<TUser, UserModel>('User', userSchema);

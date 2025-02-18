@@ -27,6 +27,13 @@ router.patch(
   validateRequest(UserValidation.updateProfileValidationSchema),
   UserController.updateProfile,
 );
+
+router.patch(
+  '/update-profile-photo/:userId',
+  auth(USER_ROLE.admin, USER_ROLE.user),
+  validateRequest(UserValidation.updatePhotoValidationSchema),
+  UserController.updateProfilePhoto,
+);
 router.get(
   '/:userId',
   auth(USER_ROLE.admin, USER_ROLE.user),

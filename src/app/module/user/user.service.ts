@@ -25,6 +25,10 @@ const updateProfile = async (id: string, payload: Partial<TUser>) => {
   const result = await User.findByIdAndUpdate(id, payload, { new: true });
   return result;
 };
+const updateProfilePhoto = async (id: string, payload: Partial<TUser>) => {
+  const result = await User.findByIdAndUpdate(id, payload, { new: true });
+  return result;
+};
 
 export const UserServices = {
   getSingleUserFromDB,
@@ -32,4 +36,5 @@ export const UserServices = {
   changeStatus,
   blockUser,
   updateProfile,
+  updateProfilePhoto,
 };

@@ -215,10 +215,66 @@ const forgetPassword = async (email: string) => {
   sendEmail(user.email, resetUILink);
 };
 
+// reset password
+const resetPassword = async (
+  payload: { email: string; newPassword: string },
+  token: string,
+) => {
+  // check if the user exists
+  const user = await User.isUserExistByEmail(payload?.email);
+  if (!user) {
+    throw new AppError(status.NOT_FOUND, 'This user is not found !');
+  }
+
+  // checking if  the  user is already blocked
+  const isBlocked = user?.isBlocked;
+  if (isBlocked) {
+    throw new AppError(status.FORBIDDEN, 'This user is already deleted !');
+  }
+
+  // checking if the user is active or not
+  const userStatus = user?.status;
+  if (userStatus === 'inactive') {
+    throw new AppError(status.FORBIDDEN, 'This user is not active !');
+  }
+
+  // checking if token is valid
+  const decoded = jwt.verify(
+    token,
+    config.jwt_access_secret as string,
+  ) as JwtPayload;
+
+  if (decoded?.email !== payload?.email) {
+    throw new AppError(
+      status.FORBIDDEN,
+      'You are forbidden to perform this action!',
+    );
+  }
+
+  // hash new password
+  const newhashedPassword = await bcrypt.hash(
+    payload?.newPassword,
+    Number(config.bcrypt_salt_rounds),
+  );
+
+  await User.findOneAndUpdate(
+    {
+      id: decoded?.userId,
+      role: decoded?.role,
+    },
+    {
+      password: newhashedPassword,
+      passwordChangedAt: new Date(),
+    },
+    { new: true },
+  );
+};
+
 export const AuthService = {
   registerUser,
   loginUser,
   changePassword,
   refreshToken,
   forgetPassword,
+  resetPassword,
 };

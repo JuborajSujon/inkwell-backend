@@ -20,6 +20,16 @@ export interface TUser {
 
 export interface UserModel extends Model<TUser> {
   isUserExistByEmail(email: string): Promise<TUser | null>;
+
+  isPasswordMatched(
+    plainTextPassword: string,
+    hashedPassword: string,
+  ): Promise<boolean>;
+
+  isJwtIssuedBeforePasswordChange(
+    passwordChangeTimestamp: Date,
+    jwtIssuedTimestamp: number,
+  ): boolean;
 }
 
 export type TUserRole = keyof typeof USER_ROLE;

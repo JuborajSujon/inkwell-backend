@@ -13,6 +13,7 @@ export interface TUser {
   role: Role;
   status: Status;
   shippingAddress?: string;
+  passwordChangedAt?: Date;
   createdAt?: Date;
   updatedAt?: Date;
   isBlocked?: boolean;

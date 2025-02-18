@@ -22,7 +22,7 @@ const auth = (...requiredRoles: TUserRole[]) => {
       config.jwt_access_secret as string,
     ) as JwtPayload;
 
-    const { role, email } = decoded;
+    const { role, email, iat } = decoded;
 
     // check if the user exists
     const user = await User.isUserExistByEmail(email);
@@ -39,10 +39,28 @@ const auth = (...requiredRoles: TUserRole[]) => {
       );
     }
 
-    // checking if the user is blocked
-    const userStatus = user?.status;
-    if (userStatus === 'inactive') {
-      throw new AppError(httpStatus.FORBIDDEN, 'This user is inactive !');
+    // checking if the user is already inactive
+    // const userStatus = user?.status;
+    // if (userStatus === 'inactive') {
+    //   throw new AppError(
+    //     httpStatus.FORBIDDEN,
+    //     'This user is already inactive !',
+    //   );
+    // }
+
+    // check if jwt issued timestamp less then password change timestamp
+
+    if (
+      user.passwordChangedAt &&
+      User.isJwtIssuedBeforePasswordChange(
+        user.passwordChangedAt,
+        iat as number,
+      )
+    ) {
+      throw new AppError(
+        httpStatus.UNAUTHORIZED,
+        "You're unauthrized to perform this action!",
+      );
     }
 
     // check if user has required role

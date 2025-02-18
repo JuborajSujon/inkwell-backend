@@ -10,7 +10,19 @@ const getAllUsersFromDB = async () => {
   return result;
 };
 
-export const UserService = {
+const changeStatus = async (id: string, payload: { status: string }) => {
+  const result = await User.findByIdAndUpdate(id, payload, { new: true });
+  return result;
+};
+
+const blockUser = async (id: string, payload: { isBlocked: boolean }) => {
+  const result = await User.findByIdAndUpdate(id, payload, { new: true });
+  return result;
+};
+
+export const UserServices = {
   getSingleUserFromDB,
   getAllUsersFromDB,
+  changeStatus,
+  blockUser,
 };

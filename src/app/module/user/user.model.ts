@@ -1,6 +1,6 @@
 import { model, Schema } from 'mongoose';
 import { TUser, UserModel } from './user.interface';
-import { USER_ROLE } from './user.constant';
+import { USER_ROLE, USER_STATUS } from './user.constant';
 import bcrypt from 'bcrypt';
 import config from '../../config';
 
@@ -34,12 +34,15 @@ const userSchema = new Schema<TUser, UserModel>(
     },
     status: {
       type: String,
-      enum: ['active', 'inactive'],
+      enum: USER_STATUS,
       default: 'active',
     },
     shippingAddress: {
       type: String,
       default: '',
+    },
+    passwordChangedAt: {
+      type: Date,
     },
     isBlocked: {
       type: Boolean,

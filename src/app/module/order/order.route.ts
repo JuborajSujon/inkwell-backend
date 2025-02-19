@@ -18,6 +18,13 @@ router.get(
   auth(USER_ROLE.user, USER_ROLE.admin),
   OrderController.addToCartList,
 );
+
+router.patch(
+  '/:orderId',
+  auth(USER_ROLE.user, USER_ROLE.admin),
+  validateRequest(OrderValidation.updateOrderValidationSchema),
+  OrderController.updateAddToCart,
+);
 router.get('/revenue', auth(USER_ROLE.admin), OrderController.calculateRevenue);
 
 export const OrderRoutes = router;

@@ -43,7 +43,7 @@ const addToCartList = async (email: Partial<TOrder>) => {
     status: 'pending',
     isDeleted: false,
   };
-  const order = await Order.find(query);
+  const order = await Order.find(query).populate('productId');
 
   // if product not found
   if (!order) throw new AppError(status.NOT_FOUND, 'Product not found');
@@ -68,8 +68,30 @@ const calculateTotalRevenue = async () => {
   return totalRevenue;
 };
 
+const updateAddToCart = async (
+  orderId: string,
+  updateData: Partial<TOrder>,
+) => {
+  // get product from the database
+  const order = await Order.findById(orderId);
+
+  // if product not found
+  if (!order) throw new AppError(status.NOT_FOUND, 'Order not found');
+
+  // update order in the database
+  const updatedOrder = await Order.findByIdAndUpdate(orderId, updateData, {
+    new: true,
+    runValidators: true,
+  }).populate('productId');
+
+  if (!updatedOrder) throw new AppError(status.NOT_FOUND, 'Order not found');
+
+  return updatedOrder;
+};
+
 export const OrderService = {
   addToCartList,
+  updateAddToCart,
   calculateTotalRevenue,
   addToCart,
 };

@@ -55,8 +55,25 @@ const addToCart = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const updateAddToCart = catchAsync(async (req: Request, res: Response) => {
+  // Get order data from request body
+  const { orderId } = req.params;
+
+  // Create a new order
+  const result = await OrderService.updateAddToCart(orderId, req.body);
+
+  // Send response
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Cart updated successfully',
+    data: result,
+  });
+});
+
 export const OrderController = {
   addToCartList,
+  updateAddToCart,
   calculateRevenue,
   addToCart,
 };

@@ -65,6 +65,16 @@ const productSchema = new Schema<TProduct>(
       trim: true,
       maxlength: [500, 'Product description must be less than 500 characters'],
     },
+    model: {
+      type: String,
+      required: [true, 'Product model is required'],
+      trim: true,
+      unique: true, // Ensure the product model is unique
+    },
+    photo: {
+      type: String,
+      required: [true, 'Product photo is required'],
+    },
     quantity: {
       type: Number,
       required: [true, 'Product quantity is required'],

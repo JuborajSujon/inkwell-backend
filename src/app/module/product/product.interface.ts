@@ -8,10 +8,12 @@ export type TProduct = {
     | 'Art Supplies'
     | 'Educational'
     | 'Technology';
+  model: string;
+  photo: string;
   description: string;
   quantity: number;
   inStock: boolean;
+  isDeleted?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
-  isDeleted?: boolean;
 };

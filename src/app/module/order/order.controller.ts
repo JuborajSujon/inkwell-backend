@@ -8,6 +8,7 @@ import { JwtPayload } from 'jsonwebtoken';
 import AppError from '../../errors/AppError';
 
 // get all orders
+
 const addToCartList = catchAsync(async (req: Request, res: Response) => {
   // Get order data from request body
   const user = req.user as JwtPayload;
@@ -55,6 +56,7 @@ const addToCart = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// update order
 const updateAddToCart = catchAsync(async (req: Request, res: Response) => {
   // Get order data from request body
   const { orderId } = req.params;
@@ -71,9 +73,27 @@ const updateAddToCart = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// delete order
+const deleteAddToCart = catchAsync(async (req: Request, res: Response) => {
+  // Get order data from request body
+  const { orderId } = req.params;
+
+  // delete order from the database
+  const result = await OrderService.deleteAddToCart(orderId);
+
+  // Send response
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Cart deleted successfully',
+    data: result,
+  });
+});
+
 export const OrderController = {
   addToCartList,
   updateAddToCart,
   calculateRevenue,
   addToCart,
+  deleteAddToCart,
 };

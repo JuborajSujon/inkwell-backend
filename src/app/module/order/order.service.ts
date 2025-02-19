@@ -68,6 +68,7 @@ const calculateTotalRevenue = async () => {
   return totalRevenue;
 };
 
+// update order in the database
 const updateAddToCart = async (
   orderId: string,
   updateData: Partial<TOrder>,
@@ -89,9 +90,25 @@ const updateAddToCart = async (
   return updatedOrder;
 };
 
+// delete order from the database
+
+const deleteAddToCart = async (orderId: string) => {
+  // get product from the database
+  const order = await Order.findById(orderId);
+
+  // if product not found
+  if (!order) throw new AppError(status.NOT_FOUND, 'Order not found');
+
+  // delete order from the database
+  const deletedOrder = await Order.findByIdAndDelete(orderId);
+
+  return deletedOrder;
+};
+
 export const OrderService = {
   addToCartList,
   updateAddToCart,
   calculateTotalRevenue,
   addToCart,
+  deleteAddToCart,
 };

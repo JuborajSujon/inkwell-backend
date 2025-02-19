@@ -25,6 +25,12 @@ router.patch(
   validateRequest(OrderValidation.updateOrderValidationSchema),
   OrderController.updateAddToCart,
 );
+
+router.delete(
+  '/:orderId',
+  auth(USER_ROLE.user, USER_ROLE.admin),
+  OrderController.deleteAddToCart,
+);
 router.get('/revenue', auth(USER_ROLE.admin), OrderController.calculateRevenue);
 
 export const OrderRoutes = router;

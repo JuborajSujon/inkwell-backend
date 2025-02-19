@@ -4,10 +4,10 @@ import { TOrder } from './order.interface';
 import AppError from '../../errors/AppError';
 import status from 'http-status';
 
-// Create a new order
-const createOrderIntoDB = async (orderData: TOrder) => {
+// Add product to cart
+const addToCart = async (orderData: TOrder) => {
   // get product from the database
-  const product = await Product.findById(orderData.product);
+  const product = await Product.findById(orderData.productId);
 
   // if product not found
   if (!product) throw new AppError(status.NOT_FOUND, 'Product not found');
@@ -22,7 +22,7 @@ const createOrderIntoDB = async (orderData: TOrder) => {
   // create new order in the database
   const order = await Order.create({
     email: orderData.email,
-    product: orderData.product,
+    productId: orderData.productId,
     quantity: orderData.quantity,
     totalPrice,
   });
@@ -31,6 +31,22 @@ const createOrderIntoDB = async (orderData: TOrder) => {
   product.quantity -= orderData.quantity;
   product.inStock = product.quantity > 0;
   await product.save();
+
+  return order;
+};
+
+// Create a new order
+const addToCartList = async (email: Partial<TOrder>) => {
+  // get product from the database
+  const query = {
+    email: email,
+    status: 'pending',
+    isDeleted: false,
+  };
+  const order = await Order.find(query);
+
+  // if product not found
+  if (!order) throw new AppError(status.NOT_FOUND, 'Product not found');
 
   return order;
 };
@@ -53,6 +69,7 @@ const calculateTotalRevenue = async () => {
 };
 
 export const OrderService = {
-  createOrderIntoDB,
+  addToCartList,
   calculateTotalRevenue,
+  addToCart,
 };

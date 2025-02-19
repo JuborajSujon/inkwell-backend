@@ -1,5 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import { TOrder } from './order.interface';
+import { ORDER_STATUS } from './order.constant';
 
 const orderSchema = new Schema<TOrder>(
   {
@@ -15,7 +16,7 @@ const orderSchema = new Schema<TOrder>(
         message: 'Invalid email',
       },
     },
-    product: {
+    productId: {
       type: Schema.Types.ObjectId,
       ref: 'Product',
       required: [true, 'Product id required'],
@@ -40,6 +41,18 @@ const orderSchema = new Schema<TOrder>(
         validator: (value: number) => value > 0,
         message: 'Total price must be a positive number',
       },
+    },
+    status: {
+      type: String,
+      enum: {
+        values: ORDER_STATUS,
+        message: '{VALUE} is not a valid status',
+      },
+      default: 'pending',
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
     },
   },
   {

@@ -7,15 +7,24 @@ import { ProductValidation } from './product.validation';
 
 const router = express.Router();
 
-router.get('/', ProductController.getAllProducts);
 router.post(
   '/create-product',
   auth(USER_ROLE.admin),
   validateRequest(ProductValidation.createProductValidationSchema),
   ProductController.createProduct,
 );
+router.put(
+  '/:productId',
+  auth(USER_ROLE.admin),
+  validateRequest(ProductValidation.updateProductValidationSchema),
+  ProductController.updateProduct,
+);
+router.delete(
+  '/:productId',
+  auth(USER_ROLE.admin),
+  ProductController.deleteProduct,
+);
 router.get('/:productId', ProductController.getProductById);
-router.put('/:productId', ProductController.updateProduct);
-router.delete('/:productId', ProductController.deleteProduct);
+router.get('/', ProductController.getAllProducts);
 
 export const ProductRoutes = router;

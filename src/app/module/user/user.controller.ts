@@ -3,13 +3,16 @@ import catchAsync from '../../utils/CatchAsync';
 import sendResponse from '../../utils/sendResponse';
 import status from 'http-status';
 import { UserServices } from './user.service';
+import { JwtPayload } from 'jsonwebtoken';
 
 const getSingleUser = catchAsync(async (req: Request, res: Response) => {
   // Get user data from request params
   const { userId } = req.params;
 
+  const user = req.user as JwtPayload;
+
   // Create a new user
-  const result = await UserServices.getSingleUserFromDB(userId);
+  const result = await UserServices.getSingleUserFromDB(userId, user);
 
   // Send response
   sendResponse(res, {

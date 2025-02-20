@@ -1,8 +1,17 @@
+import status from 'http-status';
+import AppError from '../../errors/AppError';
 import { TUser } from './user.interface';
 import { User } from './user.model';
+import { JwtPayload } from 'jsonwebtoken';
 
-const getSingleUserFromDB = async (userId: string) => {
+const getSingleUserFromDB = async (userId: string, user: JwtPayload) => {
   const result = await User.findOne({ _id: userId });
+
+  if (!result) throw new AppError(status.NOT_FOUND, 'User not found');
+
+  if (result.email !== user.email)
+    throw new AppError(status.UNAUTHORIZED, 'You are not authorized!');
+
   return result;
 };
 

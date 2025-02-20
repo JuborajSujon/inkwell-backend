@@ -39,6 +39,6 @@ router.get(
   auth(USER_ROLE.admin, USER_ROLE.user),
   UserController.getSingleUser,
 );
-router.get('/', UserController.getAllUsers);
+router.get('/', auth(USER_ROLE.admin), UserController.getAllUsers);
 
 export const UserRoutes = router;

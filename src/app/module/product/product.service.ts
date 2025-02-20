@@ -2,6 +2,8 @@ import status from 'http-status';
 import AppError from '../../errors/AppError';
 import { TProduct } from './product.interface';
 import { Product } from './product.model';
+import QueryBuilder from '../../builder/QueryBuilder';
+import { productSearchableFields } from './product.contant';
 
 // Create a new product
 const createProductIntoDB = async (productData: TProduct) => {
@@ -10,24 +12,21 @@ const createProductIntoDB = async (productData: TProduct) => {
 };
 
 // Get all products with if query search term is provided
-const getAllProudctsFromDB = async (searchTerm?: string) => {
-  const query: Record<string, unknown> = {};
+const getAllProudctsFromDB = async (query: Record<string, unknown>) => {
+  const productQuery = new QueryBuilder(
+    Product.find().select('-isDeleted'),
+    query,
+  )
+    .search(productSearchableFields)
+    .filter()
+    .sort()
+    .paginate()
+    .fields();
 
-  // if search term is provided
-  if (searchTerm) {
-    const regex = new RegExp(searchTerm, 'i'); // 'i' flag for case-insensitive search
-    Object.assign(query, {
-      $or: [
-        { name: { $regex: regex } },
-        { brand: { $regex: regex } },
-        { category: { $regex: regex } },
-      ],
-    });
-  }
+  const meta = await productQuery.countTotal();
+  const result = await productQuery.modelQuery;
 
-  // find products with the search term
-  const result = await Product.find(query).select('-isDeleted');
-  return result;
+  return { result, meta };
 };
 
 // Get specific product by id from the database

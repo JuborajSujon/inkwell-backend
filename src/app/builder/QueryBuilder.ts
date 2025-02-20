@@ -29,12 +29,51 @@ class QueryBuilder<T> {
   }
 
   filter() {
+    // const queryObj = { ...this.query };
+    // // filtering
+    // const excludeFields = ['searchTerm', 'sort', 'limit', 'page', 'fields'];
+    // excludeFields.forEach((field) => delete queryObj[field]);
+
+    // this.modelQuery = this.modelQuery.find(queryObj as FilterQuery<T>);
+
+    // return this;
+
     const queryObj = { ...this.query };
-    // filtering
     const excludeFields = ['searchTerm', 'sort', 'limit', 'page', 'fields'];
     excludeFields.forEach((field) => delete queryObj[field]);
 
-    this.modelQuery = this.modelQuery.find(queryObj as FilterQuery<T>);
+    const filterQuery: Record<string, any> = {};
+
+    // Handle price range filtering
+    if (queryObj.price && typeof queryObj.price === 'object') {
+      const priceFilter: Record<string, number> = {};
+
+      if ('gte' in queryObj.price && queryObj.price.gte) {
+        priceFilter.$gte = Number(queryObj.price.gte);
+      }
+
+      if ('lte' in queryObj.price && queryObj.price.lte) {
+        priceFilter.$lte = Number(queryObj.price.lte);
+      }
+
+      if (Object.keys(priceFilter).length > 0) {
+        filterQuery.price = priceFilter;
+      }
+    }
+
+    // Handle category filtering (Ignore if "All Categories" is selected)
+    if (queryObj.category && queryObj.category !== 'all') {
+      filterQuery.category = queryObj.category;
+    }
+
+    // Handle inStock filtering (convert to Boolean)
+    if (queryObj.inStock !== undefined) {
+      filterQuery.inStock = queryObj.inStock === 'true';
+    }
+
+    this.modelQuery = this.modelQuery.find({
+      ...filterQuery,
+    } as FilterQuery<T>);
 
     return this;
   }

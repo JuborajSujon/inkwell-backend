@@ -21,30 +21,17 @@ const createProduct = catchAsync(async (req: Request, res: Response) => {
 
 // Get all products
 const getAllProducts = catchAsync(async (req: Request, res: Response) => {
-  // Get search term from query parameters
-  const { searchTerm } = req.query;
-
   // Fetch products from the database
-  const result = await ProductService.getAllProudctsFromDB(
-    searchTerm as string,
-  );
+  const result = await ProductService.getAllProudctsFromDB(req.query);
 
-  // if no products found in the database
-  if (result.length === 0) {
-    sendResponse(res, {
-      statusCode: status.NOT_FOUND,
-      success: false,
-      message: 'No products found',
-      data: result,
-    });
-  } else {
-    sendResponse(res, {
-      statusCode: status.OK,
-      success: true,
-      message: 'Products retrieved successfully',
-      data: result,
-    });
-  }
+  // Send response
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Products retrieved successfully',
+    meta: result.meta,
+    data: result.result,
+  });
 });
 
 // Get a specific product by id

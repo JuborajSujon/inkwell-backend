@@ -16,7 +16,14 @@ const updateOrderValidationSchema = z.object({
   }),
 });
 
+const updateOrderStatusValidationSchema = z.object({
+  body: z.object({
+    status: z.string({ required_error: 'Status is required' }),
+  }),
+});
+
 export const OrderValidation = {
   createOrderValidationSchema,
   updateOrderValidationSchema,
+  updateOrderStatusValidationSchema,
 };

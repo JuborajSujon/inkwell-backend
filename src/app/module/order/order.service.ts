@@ -4,6 +4,7 @@ import { TOrder } from './order.interface';
 import AppError from '../../errors/AppError';
 import status from 'http-status';
 import { JwtPayload } from 'jsonwebtoken';
+import { ORDER_STATUS_CODE } from './order.constant';
 
 // Add product to cart
 const addToCart = async (orderData: TOrder) => {
@@ -81,9 +82,8 @@ const calculateTotalRevenue = async () => {
 
   // Initialize revenue object with default values
   const revenueByStatus: Record<string, number> = {
-    pending: 0,
-    processing: 0,
-    completed: 0,
+    [ORDER_STATUS_CODE.pending]: 0,
+    [ORDER_STATUS_CODE.shipping]: 0,
   };
 
   // Populate the object with actual data
@@ -133,8 +133,48 @@ const updateAddToCart = async (
   return updatedOrder;
 };
 
-// delete order from the database
+// update order status in the database
+const updateOrderStatus = async (
+  orderId: string,
+  updateData: Partial<TOrder>,
+  user: JwtPayload,
+) => {
+  // Get order from the database
+  const order = await Order.findById(orderId);
 
+  // If order not found
+  if (!order) throw new AppError(status.NOT_FOUND, 'Order not found');
+
+  // Ensure the order status can only update admin
+  if (user?.role === 'admin') {
+    const allowedUpdates: (keyof TOrder)[] = ['status'];
+    const filteredUpdates: Partial<TOrder> = {};
+
+    for (const key of allowedUpdates) {
+      if (key in updateData) {
+        filteredUpdates[key] = updateData[key] as never;
+      }
+    }
+
+    // Update order in the database
+    const updatedOrder = await Order.findByIdAndUpdate(
+      orderId,
+      filteredUpdates,
+      {
+        new: true,
+        runValidators: true,
+      },
+    ).populate('productId');
+
+    if (!updatedOrder) throw new AppError(status.NOT_FOUND, 'Order not found');
+
+    return updatedOrder;
+  }
+
+  throw new AppError(status.UNAUTHORIZED, 'You are not authorized!');
+};
+
+// delete order from the database
 const deleteAddToCart = async (orderId: string, user: JwtPayload) => {
   // get product from the database
   const order = await Order.findById(orderId);
@@ -158,4 +198,5 @@ export const OrderService = {
   calculateTotalRevenue,
   addToCart,
   deleteAddToCart,
+  updateOrderStatus,
 };

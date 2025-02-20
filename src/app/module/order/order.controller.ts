@@ -76,6 +76,27 @@ const updateAddToCart = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// update order status
+const updateOrderStatus = catchAsync(async (req: Request, res: Response) => {
+  // Get order data from request body
+  const { orderId } = req.params;
+
+  const user = req.user as JwtPayload;
+
+  if (!user) throw new AppError(status.UNAUTHORIZED, 'You are not authorized!');
+
+  // Update order status in the database (only admin can update order status)
+  const result = await OrderService.updateOrderStatus(orderId, req.body, user);
+
+  // Send response
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Order status updated successfully',
+    data: result,
+  });
+});
+
 // delete order
 const deleteAddToCart = catchAsync(async (req: Request, res: Response) => {
   // Get order data from request body
@@ -103,4 +124,5 @@ export const OrderController = {
   calculateRevenue,
   addToCart,
   deleteAddToCart,
+  updateOrderStatus,
 };

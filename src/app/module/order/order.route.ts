@@ -26,6 +26,13 @@ router.patch(
   OrderController.updateAddToCart,
 );
 
+router.patch(
+  '/change-status/:orderId',
+  auth(USER_ROLE.user, USER_ROLE.admin),
+  validateRequest(OrderValidation.updateOrderStatusValidationSchema),
+  OrderController.updateOrderStatus,
+);
+
 router.delete(
   '/:orderId',
   auth(USER_ROLE.user, USER_ROLE.admin),

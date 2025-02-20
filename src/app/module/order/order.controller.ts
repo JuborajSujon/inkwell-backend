@@ -7,8 +7,21 @@ import status from 'http-status';
 import { JwtPayload } from 'jsonwebtoken';
 import AppError from '../../errors/AppError';
 
-// get all orders
+// calculate order revenue
+const calculateRevenue = catchAsync(async (req: Request, res: Response) => {
+  // get total revenue
+  const result = await OrderService.calculateTotalRevenue();
 
+  // Send response
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Order created successfully',
+    data: result,
+  });
+});
+
+// get all orders
 const addToCartList = catchAsync(async (req: Request, res: Response) => {
   // Get order data from request body
   const user = req.user as JwtPayload;
@@ -21,20 +34,6 @@ const addToCartList = catchAsync(async (req: Request, res: Response) => {
     statusCode: status.OK,
     success: true,
     message: 'Add to cart list retrieved successfully',
-    data: result,
-  });
-});
-
-// calculate order revenue
-const calculateRevenue = catchAsync(async (req: Request, res: Response) => {
-  // get total revenue
-  const result = await OrderService.calculateTotalRevenue();
-
-  // Send response
-  sendResponse(res, {
-    statusCode: status.OK,
-    success: true,
-    message: 'Order created successfully',
     data: result,
   });
 });
@@ -61,8 +60,12 @@ const updateAddToCart = catchAsync(async (req: Request, res: Response) => {
   // Get order data from request body
   const { orderId } = req.params;
 
+  const user = req.user as JwtPayload;
+
+  if (!user) throw new AppError(status.UNAUTHORIZED, 'You are not authorized!');
+
   // Create a new order
-  const result = await OrderService.updateAddToCart(orderId, req.body);
+  const result = await OrderService.updateAddToCart(orderId, req.body, user);
 
   // Send response
   sendResponse(res, {
@@ -78,8 +81,12 @@ const deleteAddToCart = catchAsync(async (req: Request, res: Response) => {
   // Get order data from request body
   const { orderId } = req.params;
 
+  const user = req?.user as JwtPayload;
+
+  if (!user) throw new AppError(status.UNAUTHORIZED, 'You are not authorized!');
+
   // delete order from the database
-  const result = await OrderService.deleteAddToCart(orderId);
+  const result = await OrderService.deleteAddToCart(orderId, user);
 
   // Send response
   sendResponse(res, {

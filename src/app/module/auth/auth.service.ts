@@ -52,14 +52,12 @@ const loginUser = async (payload: TLoginUser) => {
   const accessToken = createToken(
     jwtPayload,
     config.jwt_access_secret as string,
-    config.jwt_access_expires_in as string,
   );
 
   // refresh token
   const refreshToken = createToken(
     jwtPayload,
     config.jwt_refresh_secret as string,
-    config.jwt_refresh_expires_in as string,
   );
 
   return {
@@ -168,7 +166,6 @@ const refreshToken = async (token: string) => {
   const accessToken = createToken(
     jwtPayload,
     config.jwt_access_secret as string,
-    config.jwt_access_expires_in as string,
   );
 
   return {
@@ -207,7 +204,6 @@ const forgetPassword = async (email: string) => {
   const resetToken = createToken(
     jwtPayload,
     config.jwt_access_secret as string,
-    '10m',
   );
 
   const resetUILink = `${config.reset_password_ui_link}?email=${user.email}&token=${resetToken}`;

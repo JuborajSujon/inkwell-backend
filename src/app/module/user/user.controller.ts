@@ -37,7 +37,11 @@ const getAllUsers = catchAsync(async (req: Request, res: Response) => {
 const changeStatus = catchAsync(async (req, res) => {
   // Get user data from request params
   const { id } = req.params;
-  const result = await UserServices.changeStatus(id, req.body);
+
+  const user = req.user as JwtPayload;
+
+  if (!user) throw new Error('You are not authorized!');
+  const result = await UserServices.changeStatus(id, req.body, user);
 
   // Send response
   sendResponse(res, {
@@ -65,7 +69,9 @@ const blockUser = catchAsync(async (req, res) => {
 const updateProfile = catchAsync(async (req, res) => {
   // Get user data from request params
   const { userId } = req.params;
-  const result = await UserServices.updateProfile(userId, req.body);
+
+  const user = req.user as JwtPayload;
+  const result = await UserServices.updateProfile(userId, req.body, user);
 
   // Send response
   sendResponse(res, {
@@ -78,7 +84,9 @@ const updateProfile = catchAsync(async (req, res) => {
 const updateProfilePhoto = catchAsync(async (req, res) => {
   // Get user data from request params
   const { userId } = req.params;
-  const result = await UserServices.updateProfilePhoto(userId, req.body);
+
+  const user = req.user as JwtPayload;
+  const result = await UserServices.updateProfilePhoto(userId, req.body, user);
 
   // Send response
   sendResponse(res, {

@@ -7,12 +7,12 @@ import { JwtPayload } from 'jsonwebtoken';
 
 const getSingleUser = catchAsync(async (req: Request, res: Response) => {
   // Get user data from request params
-  const { userId } = req.params;
+  const { userEmail } = req.params;
 
   const user = req.user as JwtPayload;
 
   // Create a new user
-  const result = await UserServices.getSingleUserFromDB(userId, user);
+  const result = await UserServices.getSingleUserFromDB(userEmail, user);
 
   // Send response
   sendResponse(res, {

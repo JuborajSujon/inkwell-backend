@@ -4,8 +4,8 @@ import { TUser } from './user.interface';
 import { User } from './user.model';
 import { JwtPayload } from 'jsonwebtoken';
 
-const getSingleUserFromDB = async (userId: string, user: JwtPayload) => {
-  const result = await User.findOne({ _id: userId });
+const getSingleUserFromDB = async (userEmail: string, user: JwtPayload) => {
+  const result = await User.findOne({ email: userEmail });
 
   if (!result) throw new AppError(status.NOT_FOUND, 'User not found');
 

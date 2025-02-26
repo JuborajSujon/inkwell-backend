@@ -12,9 +12,9 @@ const loginUser = catchAsync(async (req, res) => {
   const { accessToken, refreshToken } = result;
 
   res.cookie('refreshToken', refreshToken, {
-    secure: config.NODE_ENV === 'development',
+    secure: config.NODE_ENV === 'production',
     httpOnly: true,
-    sameSite: config.NODE_ENV === 'development' ? 'none' : 'lax',
+    sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 1000 * 60 * 60 * 24 * 7,
   });
 
@@ -104,9 +104,9 @@ const logoutUser = catchAsync(async (req, res) => {
   await AuthService.logoutUser(refreshToken);
 
   res.clearCookie('refreshToken', {
-    secure: config.NODE_ENV === 'development',
+    secure: config.NODE_ENV === 'production',
     httpOnly: true,
-    sameSite: config.NODE_ENV === 'development' ? 'none' : 'lax',
+    sameSite: config.NODE_ENV === 'production' ? 'none' : 'lax',
   });
 
   sendResponse(res, {

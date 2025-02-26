@@ -35,7 +35,7 @@ router.patch(
   UserController.updateProfilePhoto,
 );
 router.get(
-  '/:userId',
+  '/:userEmail',
   auth(USER_ROLE.admin, USER_ROLE.user),
   UserController.getSingleUser,
 );

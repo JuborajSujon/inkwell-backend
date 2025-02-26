@@ -8,31 +8,11 @@ const productSchema = new Schema<TProduct>(
       required: [true, 'Product name is required'],
       trim: true,
       unique: true, // Ensure the product name is unique
-      validate: {
-        validator: function (value: string) {
-          // Check if the product name is in capitalize format
-          const nameCapitalized =
-            value.charAt(0).toUpperCase() + value.slice(1);
-          return nameCapitalized === value;
-        },
-        message:
-          '{VALUE} is not a capitalize format, please product name start with capital letter',
-      },
     },
     brand: {
       type: String,
       required: [true, 'Product brand is required'],
       trim: true,
-      validate: {
-        validator: function (value: string) {
-          // Check if the brand name is in capitalize format
-          const brandCapitalized =
-            value.charAt(0).toUpperCase() + value.slice(1);
-          return brandCapitalized === value;
-        },
-        message:
-          '{VALUE} is not a capitalize format, please brand name start with capital letter',
-      },
     },
     price: {
       type: Number,

@@ -105,7 +105,10 @@ class QueryBuilder<T> {
   }
 
   async countTotal() {
-    const totalQueries = this.modelQuery.getFilter();
+    const totalQueries = {
+      ...this.modelQuery.getFilter(),
+      isDeleted: { $ne: true }, // Exclude deleted documents
+    };
     const total = await this.modelQuery.model.countDocuments(totalQueries);
 
     const page = Number(this?.query?.page) || 1;

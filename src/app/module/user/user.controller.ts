@@ -24,13 +24,14 @@ const getSingleUser = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllUsers = catchAsync(async (req: Request, res: Response) => {
-  const resutl = await UserServices.getAllUsersFromDB();
+  const result = await UserServices.getAllUsersFromDB(req.query);
 
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
     message: 'Users retrieved successfully',
-    data: resutl,
+    meta: result.meta,
+    data: result.result,
   });
 });
 

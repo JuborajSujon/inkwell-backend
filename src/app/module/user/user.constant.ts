@@ -4,3 +4,10 @@ export const USER_ROLE = {
 } as const;
 
 export const USER_STATUS = ['active', 'inactive'] as const;
+
+export const userSearchableFields = [
+  'name',
+  'email',
+  'role',
+  'shippingAddress',
+];

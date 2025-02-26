@@ -3,6 +3,8 @@ import AppError from '../../errors/AppError';
 import { TUser } from './user.interface';
 import { User } from './user.model';
 import { JwtPayload } from 'jsonwebtoken';
+import QueryBuilder from '../../builder/QueryBuilder';
+import { userSearchableFields } from './user.constant';
 
 const getSingleUserFromDB = async (userEmail: string, user: JwtPayload) => {
   const result = await User.findOne({ email: userEmail });
@@ -15,9 +17,15 @@ const getSingleUserFromDB = async (userEmail: string, user: JwtPayload) => {
   return result;
 };
 
-const getAllUsersFromDB = async () => {
-  const result = await User.find();
-  return result;
+const getAllUsersFromDB = async (query: Record<string, unknown>) => {
+  const userQuery = new QueryBuilder(User.find(), query).search(
+    userSearchableFields,
+  );
+
+  const meta = await userQuery.countTotal();
+  const result = await userQuery.modelQuery;
+
+  return { result, meta };
 };
 
 const changeStatus = async (

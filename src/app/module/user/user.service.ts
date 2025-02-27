@@ -89,7 +89,12 @@ const updateProfile = async (
 
   // // Ensure the user can only update name, status and shippingAddress
 
-  const allowedUpdates: (keyof TUser)[] = ['name', 'shippingAddress'];
+  const allowedUpdates: (keyof TUser)[] = [
+    'name',
+    'shippingAddress',
+    'status',
+    'photo',
+  ];
   const filteredUpdates: Partial<TUser> = {};
 
   for (const key of allowedUpdates) {

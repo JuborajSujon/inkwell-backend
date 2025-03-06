@@ -23,8 +23,15 @@ const createAndUpdateCartIntoDB = async (cartData: Partial<ICart>) => {
   for (const newItem of itemList) {
     // Fetch the latest product price
     const product = await Product.findById(newItem.productId);
+
+    // Check if product exists
     if (!product) {
       throw new AppError(status.NOT_FOUND, 'Product not found');
+    }
+
+    // Check if product quantity is available
+    if (product.quantity < newItem.quantity) {
+      throw new AppError(status.BAD_REQUEST, 'Product quantity not available');
     }
 
     const existingItemIndex = cart.items.findIndex(
@@ -92,7 +99,11 @@ const deleteUserCartFromDB = async (userEmail: string) => {
   if (!userEmail)
     throw new AppError(status.BAD_REQUEST, 'User email is required');
 
-  const cart = await Cart.findOneAndDelete({ userEmail });
+  const cart = await Cart.findOneAndUpdate(
+    { userEmail },
+    { $set: { items: [] } },
+    { new: true },
+  );
 
   if (!cart) throw new AppError(status.NOT_FOUND, 'Cart not found');
 

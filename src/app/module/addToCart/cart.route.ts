@@ -21,7 +21,7 @@ router.get(
 );
 
 router.delete(
-  '/delete-single-cart',
+  '/delete-single-cart/:productId',
   auth(USER_ROLE.admin, USER_ROLE.user),
   CartController.deleteSingleCart,
 );

@@ -45,8 +45,8 @@ const getMyAddToCartList = catchAsync(async (req, res) => {
 });
 
 const deleteSingleCart = catchAsync(async (req, res) => {
-  // Get user data from request body
-  const { productId } = req.body;
+  // Get user data from request params
+  const { productId } = req.params;
   // Get user data from request user
   const user = req.user;
 
@@ -61,7 +61,7 @@ const deleteSingleCart = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
-    message: 'Cart deleted successfully',
+    message: 'Single Cart deleted successfully',
     data: result,
   });
 });

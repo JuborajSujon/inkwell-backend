@@ -7,6 +7,62 @@ import status from 'http-status';
 import { JwtPayload } from 'jsonwebtoken';
 import AppError from '../../errors/AppError';
 
+// get all orders
+const getMyOrderList = catchAsync(async (req: Request, res: Response) => {
+  // Get order data from request body
+  const user = req.user as JwtPayload;
+
+  if (!user) throw new AppError(status.UNAUTHORIZED, 'You are not authorized!');
+  const result = await OrderService.getMyOrderListFromDB(user?.email);
+
+  // Send response
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Order list retrieved successfully',
+    data: result,
+  });
+});
+
+//  Add to cart order data
+const createOrder = catchAsync(async (req: Request, res: Response) => {
+  // Get order data from request body
+  const orderData = req.body;
+
+  // Get user data from request body
+  const user = req.user as JwtPayload;
+
+  // Create a new order
+  const result = await OrderService.createOrderIntoDB(orderData, user);
+
+  // Send response
+  sendResponse(res, {
+    statusCode: status.CREATED,
+    success: true,
+    message: 'Order created successfully',
+    data: result,
+  });
+});
+
+// get single order
+const getSingleOrder = catchAsync(async (req: Request, res: Response) => {
+  // Get order data from request body
+  const { orderId } = req.params;
+
+  const user = req.user as JwtPayload;
+
+  if (!user) throw new AppError(status.UNAUTHORIZED, 'You are not authorized!');
+  const result = await OrderService.getSingleOrderFromDB(orderId, user);
+
+  // Send response
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Order retrieved successfully',
+    data: result,
+  });
+});
+
 // calculate order revenue
 const calculateRevenue = catchAsync(async (req: Request, res: Response) => {
   // get total revenue
@@ -21,61 +77,6 @@ const calculateRevenue = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// get all orders
-const addToCartList = catchAsync(async (req: Request, res: Response) => {
-  // Get order data from request body
-  const user = req.user as JwtPayload;
-
-  if (!user) throw new AppError(status.UNAUTHORIZED, 'You are not authorized!');
-  const result = await OrderService.addToCartList(user?.email);
-
-  // Send response
-  sendResponse(res, {
-    statusCode: status.OK,
-    success: true,
-    message: 'Add to cart list retrieved successfully',
-    data: result,
-  });
-});
-
-//  Add to cart order data
-const addToCart = catchAsync(async (req: Request, res: Response) => {
-  // Get order data from request body
-  const orderData = req.body;
-
-  // Create a new order
-  const result = await OrderService.addToCart(orderData);
-
-  // Send response
-  sendResponse(res, {
-    statusCode: status.CREATED,
-    success: true,
-    message: 'Order created successfully',
-    data: result,
-  });
-});
-
-// update order
-const updateAddToCart = catchAsync(async (req: Request, res: Response) => {
-  // Get order data from request body
-  const { orderId } = req.params;
-
-  const user = req.user as JwtPayload;
-
-  if (!user) throw new AppError(status.UNAUTHORIZED, 'You are not authorized!');
-
-  // Create a new order
-  const result = await OrderService.updateAddToCart(orderId, req.body, user);
-
-  // Send response
-  sendResponse(res, {
-    statusCode: status.OK,
-    success: true,
-    message: 'Cart updated successfully',
-    data: result,
-  });
-});
-
 // update order status
 const updateOrderStatus = catchAsync(async (req: Request, res: Response) => {
   // Get order data from request body
@@ -86,7 +87,11 @@ const updateOrderStatus = catchAsync(async (req: Request, res: Response) => {
   if (!user) throw new AppError(status.UNAUTHORIZED, 'You are not authorized!');
 
   // Update order status in the database (only admin can update order status)
-  const result = await OrderService.updateOrderStatus(orderId, req.body, user);
+  const result = await OrderService.updateOrderStatusFromDb(
+    orderId,
+    req.body,
+    user,
+  );
 
   // Send response
   sendResponse(res, {
@@ -97,8 +102,29 @@ const updateOrderStatus = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+// delete single order
+const deleteSingleOrder = catchAsync(async (req: Request, res: Response) => {
+  // Get order data from request body
+  const { orderId } = req.params;
+
+  const user = req.user as JwtPayload;
+
+  if (!user) throw new AppError(status.UNAUTHORIZED, 'You are not authorized!');
+
+  // Create a new order
+  const result = await OrderService.deleteSingleOrderFromDb(orderId, user);
+
+  // Send response
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Cart updated successfully',
+    data: result,
+  });
+});
+
 // delete order
-const deleteAddToCart = catchAsync(async (req: Request, res: Response) => {
+const deleteAllOrder = catchAsync(async (req: Request, res: Response) => {
   // Get order data from request body
   const { orderId } = req.params;
 
@@ -107,22 +133,25 @@ const deleteAddToCart = catchAsync(async (req: Request, res: Response) => {
   if (!user) throw new AppError(status.UNAUTHORIZED, 'You are not authorized!');
 
   // delete order from the database
-  const result = await OrderService.deleteAddToCart(orderId, user);
+  // const result = await OrderService.deleteAddToCart(orderId, user);
+
+  const result = await OrderService.deleteAllOrderFromDb(orderId, user);
 
   // Send response
   sendResponse(res, {
     statusCode: status.OK,
     success: true,
-    message: 'Cart deleted successfully',
+    message: 'Order deleted successfully',
     data: result,
   });
 });
 
 export const OrderController = {
-  addToCartList,
-  updateAddToCart,
-  calculateRevenue,
-  addToCart,
-  deleteAddToCart,
+  getMyOrderList,
+  getSingleOrder,
+  createOrder,
   updateOrderStatus,
+  deleteSingleOrder,
+  deleteAllOrder,
+  calculateRevenue,
 };

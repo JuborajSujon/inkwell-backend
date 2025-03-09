@@ -1,44 +1,105 @@
 import { Order } from './order.model';
-import { Product } from '../product/product.model';
-import { TOrder } from './order.interface';
+import { IOrder, IOrderItem, ISingleOrderItem } from './order.interface';
 import AppError from '../../errors/AppError';
 import status from 'http-status';
 import { JwtPayload } from 'jsonwebtoken';
 import { ORDER_STATUS_CODE } from './order.constant';
+import { Product } from '../product/product.model';
+import mongoose, { Types } from 'mongoose';
 
-// Add product to cart
-const addToCart = async (orderData: TOrder) => {
-  // get product from the database
-  const product = await Product.findById(orderData.productId);
+// Get all orders
+const getMyOrderListFromDB = async (email: string) => {
+  const query = {
+    userEmail: email, // search for orders with the user's email
+  };
 
-  // if product not found
-  if (!product) throw new AppError(status.NOT_FOUND, 'Product not found');
+  // Fetch orders from the database, populate the orderItems
+  const orders = await Order.find(query).populate(
+    'productItems.orderItems.productId',
+  );
 
-  // check stock availability
-  if (product.quantity < orderData.quantity)
-    throw new AppError(status.BAD_REQUEST, 'Insufficient stock');
+  // Check if orders exist for the given user
+  if (!orders || orders.length === 0) {
+    throw new AppError(status.NOT_FOUND, 'No orders found');
+  }
 
-  // calculate total price of the order if total price is not provided
-  const totalPrice = orderData.totalPrice || orderData.quantity * product.price;
+  return orders;
+};
 
-  // create new order in the database
-  const order = await Order.create({
-    email: orderData.email,
-    productId: orderData.productId,
-    quantity: orderData.quantity,
+// Create a new order
+const createOrderIntoDB = async (orderData: IOrderItem, user: JwtPayload) => {
+  const userEmail = user?.email;
+
+  const { orderItems, orderTitle } = orderData;
+
+  if (!Array.isArray(orderItems) || orderItems.length === 0) {
+    throw new AppError(
+      status.BAD_REQUEST,
+      "Order items can't be empty or not an array",
+    );
+  }
+
+  let order = await Order.findOne({ userEmail });
+
+  if (!order) {
+    order = new Order({
+      _id: new Types.ObjectId(),
+      userEmail,
+      productItems: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+  }
+
+  let totalPrice = 0;
+  const orderItemProducts: ISingleOrderItem[] = [];
+
+  for (const product of orderItems) {
+    if (!mongoose.isValidObjectId(product.productId)) {
+      throw new AppError(
+        status.BAD_REQUEST,
+        `Invalid product ID: ${product.productId}`,
+      );
+    }
+
+    const productDetails = await Product.findById(product.productId);
+    if (!productDetails) {
+      throw new AppError(
+        status.NOT_FOUND,
+        `Product not found: ${product.productId}`,
+      );
+    }
+
+    const price = productDetails.price * product.quantity;
+    totalPrice += price;
+
+    orderItemProducts.push({
+      _id: new Types.ObjectId(),
+      productId: new mongoose.Types.ObjectId(String(product.productId)),
+      quantity: product.quantity,
+      price,
+    });
+  }
+
+  const newOrderItem: IOrderItem = {
+    _id: new Types.ObjectId(),
+    orderTitle,
+    orderItems: orderItemProducts,
     totalPrice,
-  });
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
 
-  // update product quantity in the database
-  product.quantity -= orderData.quantity;
-  product.inStock = product.quantity > 0;
-  await product.save();
+  order.productItems.push(newOrderItem);
+  order.updatedAt = new Date();
+
+  await order.save();
 
   return order;
 };
 
-// Create a new order
-const addToCartList = async (email: Partial<TOrder>) => {
+// Get a orders
+const getSingleOrderFromDB = async (email: Partial<IOrder>) => {
   // get product from the database
   const query = {
     email: email,
@@ -48,7 +109,7 @@ const addToCartList = async (email: Partial<TOrder>) => {
   const order = await Order.find(query).populate('productId');
 
   // if product not found
-  if (!order) throw new AppError(status.NOT_FOUND, 'Product not found');
+  if (!order) throw new AppError(status.NOT_FOUND, 'Order not found');
 
   return order;
 };
@@ -96,47 +157,10 @@ const calculateTotalRevenue = async () => {
   return revenueByStatus;
 };
 
-// update order in the database
-const updateAddToCart = async (
-  orderId: string,
-  updateData: Partial<TOrder>,
-  user: JwtPayload,
-) => {
-  // Get order from the database
-  const order = await Order.findById(orderId);
-
-  // If order not found
-  if (!order) throw new AppError(status.NOT_FOUND, 'Order not found');
-
-  // Ensure the user can only update their own order
-  if (order.email !== user.email)
-    throw new AppError(status.UNAUTHORIZED, 'You are not authorized!');
-
-  // Ensure the user can only update quantity and totalPrice
-  const allowedUpdates: (keyof TOrder)[] = ['quantity', 'totalPrice'];
-  const filteredUpdates: Partial<TOrder> = {};
-
-  for (const key of allowedUpdates) {
-    if (key in updateData) {
-      filteredUpdates[key] = updateData[key] as never;
-    }
-  }
-
-  // Update order in the database
-  const updatedOrder = await Order.findByIdAndUpdate(orderId, filteredUpdates, {
-    new: true,
-    runValidators: true,
-  }).populate('productId');
-
-  if (!updatedOrder) throw new AppError(status.NOT_FOUND, 'Order not found');
-
-  return updatedOrder;
-};
-
 // update order status in the database
-const updateOrderStatus = async (
+const updateOrderStatusFromDb = async (
   orderId: string,
-  updateData: Partial<TOrder>,
+  updateData: Partial<IOrder>,
   user: JwtPayload,
 ) => {
   // Get order from the database
@@ -147,8 +171,8 @@ const updateOrderStatus = async (
 
   // Ensure the order status can only update admin
   if (user?.role === 'admin') {
-    const allowedUpdates: (keyof TOrder)[] = ['status'];
-    const filteredUpdates: Partial<TOrder> = {};
+    const allowedUpdates: (keyof IOrder)[] = ['status'];
+    const filteredUpdates: Partial<IOrder> = {};
 
     for (const key of allowedUpdates) {
       if (key in updateData) {
@@ -174,17 +198,35 @@ const updateOrderStatus = async (
   throw new AppError(status.UNAUTHORIZED, 'You are not authorized!');
 };
 
-// delete order from the database
-const deleteAddToCart = async (orderId: string, user: JwtPayload) => {
+// delete single order from the database
+const deleteSingleOrderFromDb = async (orderId: string, user: JwtPayload) => {
   // get product from the database
   const order = await Order.findById(orderId);
 
+  // if product not found
+  if (!order) throw new AppError(status.NOT_FOUND, 'Order not found');
+
   // Ensure the user can only delete their own order
-  if (order?.email !== user?.email)
+  if (order?.userEmail !== user?.email)
     throw new AppError(status.UNAUTHORIZED, 'You are not authorized!');
+  // delete order from the database
+
+  const result = {};
+
+  return result;
+};
+
+// delete order from the database
+const deleteAllOrderFromDb = async (orderId: string, user: JwtPayload) => {
+  // get product from the database
+  const order = await Order.findById(orderId);
 
   // if product not found
   if (!order) throw new AppError(status.NOT_FOUND, 'Order not found');
+
+  // Ensure the user can only delete their own order
+  if (order?.userEmail !== user?.email)
+    throw new AppError(status.UNAUTHORIZED, 'You are not authorized!');
 
   // delete order from the database
   const deletedOrder = await Order.findByIdAndDelete(orderId);
@@ -193,10 +235,11 @@ const deleteAddToCart = async (orderId: string, user: JwtPayload) => {
 };
 
 export const OrderService = {
-  addToCartList,
-  updateAddToCart,
   calculateTotalRevenue,
-  addToCart,
-  deleteAddToCart,
-  updateOrderStatus,
+  getMyOrderListFromDB,
+  getSingleOrderFromDB,
+  createOrderIntoDB,
+  updateOrderStatusFromDb,
+  deleteSingleOrderFromDb,
+  deleteAllOrderFromDb,
 };

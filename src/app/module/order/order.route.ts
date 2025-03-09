@@ -8,35 +8,39 @@ import { OrderValidation } from './order.validation';
 const router = express.Router();
 
 router.post(
-  '/add-to-cart',
+  '/create-order',
   auth(USER_ROLE.user, USER_ROLE.admin),
   validateRequest(OrderValidation.createOrderValidationSchema),
-  OrderController.addToCart,
+  OrderController.createOrder,
 );
 router.get(
-  '/my-add-to-cart-list',
+  '/my-order-list',
   auth(USER_ROLE.user, USER_ROLE.admin),
-  OrderController.addToCartList,
+  OrderController.getMyOrderList,
 );
 
-router.patch(
+router.get(
   '/:orderId',
   auth(USER_ROLE.user, USER_ROLE.admin),
-  validateRequest(OrderValidation.updateOrderValidationSchema),
-  OrderController.updateAddToCart,
+  OrderController.getSingleOrder,
 );
 
 router.patch(
-  '/change-status/:orderId',
-  auth(USER_ROLE.user, USER_ROLE.admin),
+  '/change-order-status/:orderId',
+  auth(USER_ROLE.admin),
   validateRequest(OrderValidation.updateOrderStatusValidationSchema),
   OrderController.updateOrderStatus,
 );
 
 router.delete(
-  '/:orderId',
+  '/delete-single-order/:orderId',
   auth(USER_ROLE.user, USER_ROLE.admin),
-  OrderController.deleteAddToCart,
+  OrderController.deleteSingleOrder,
+);
+router.delete(
+  '/delete-all-order',
+  auth(USER_ROLE.user, USER_ROLE.admin),
+  OrderController.deleteAllOrder,
 );
 router.get('/revenue', auth(USER_ROLE.admin), OrderController.calculateRevenue);
 

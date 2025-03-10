@@ -28,12 +28,12 @@ const getMyOrderList = catchAsync(async (req: Request, res: Response) => {
 const createOrder = catchAsync(async (req: Request, res: Response) => {
   // Get order data from request body
   const orderData = req.body;
-
+  console.log(orderData);
   // Get user data from request body
   const user = req.user as JwtPayload;
 
   // Create a new order
-  const result = await OrderService.createOrderIntoDB(orderData, user);
+  const result = await OrderService.createOrderIntoDB(orderData, user, req.ip!);
 
   // Send response
   sendResponse(res, {
@@ -41,6 +41,18 @@ const createOrder = catchAsync(async (req: Request, res: Response) => {
     success: true,
     message: 'Order created successfully',
     data: result,
+  });
+});
+
+// verify Payment
+const verifyPayment = catchAsync(async (req, res) => {
+  const order = await OrderService.verifyPayment(req.query.order_id as string);
+
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Payment verified successfully',
+    data: order,
   });
 });
 
@@ -150,6 +162,7 @@ export const OrderController = {
   getMyOrderList,
   getSingleOrder,
   createOrder,
+  verifyPayment,
   updateOrderStatus,
   deleteSingleOrder,
   deleteAllOrder,

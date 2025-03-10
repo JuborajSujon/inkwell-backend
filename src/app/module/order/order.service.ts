@@ -6,6 +6,9 @@ import { JwtPayload } from 'jsonwebtoken';
 import { ORDER_STATUS_CODE } from './order.constant';
 import { Product } from '../product/product.model';
 import mongoose, { Types } from 'mongoose';
+import { User } from '../user/user.model';
+import { orderUtils } from './order.utils';
+import { Cart } from '../addToCart/cart.model';
 
 // Get all orders
 const getMyOrderListFromDB = async (email: string) => {
@@ -27,10 +30,20 @@ const getMyOrderListFromDB = async (email: string) => {
 };
 
 // Create a new order
-const createOrderIntoDB = async (orderData: IOrderItem, user: JwtPayload) => {
+const createOrderIntoDB = async (
+  orderData: IOrderItem,
+  user: JwtPayload,
+  client_ip: string,
+) => {
   const userEmail = user?.email;
 
-  const { orderItems, orderTitle } = orderData;
+  const userDetails = await User.findOne({ email: userEmail });
+
+  if (!userDetails) {
+    throw new AppError(status.NOT_FOUND, 'User not found');
+  }
+
+  const { orderItems, orderTitle, shippingAddress } = orderData;
 
   if (!Array.isArray(orderItems) || orderItems.length === 0) {
     throw new AppError(
@@ -81,21 +94,110 @@ const createOrderIntoDB = async (orderData: IOrderItem, user: JwtPayload) => {
     });
   }
 
-  const newOrderItem: IOrderItem = {
-    _id: new Types.ObjectId(),
-    orderTitle,
-    orderItems: orderItemProducts,
-    totalPrice,
-    createdAt: new Date(),
-    updatedAt: new Date(),
+  const transaction = {
+    id: '',
+    transactionStatus: '',
   };
 
-  order.productItems.push(newOrderItem);
-  order.updatedAt = new Date();
+  // payment intregration
 
-  await order.save();
+  const shurjopayPayload = {
+    amount: totalPrice,
+    order_id: order._id,
+    currency: 'USD',
+    customer_name: userDetails?.name,
+    customer_email: userDetails?.email,
+    customer_address: shippingAddress,
+    customer_phone: 'phone number',
+    customer_city: 'city',
+    client_ip,
+  };
 
-  return order;
+  const payment = await orderUtils.makePaymentAsync(shurjopayPayload);
+
+  if (!payment) {
+    throw new AppError(status.BAD_REQUEST, 'Payment failed');
+  }
+
+  if (payment) {
+    transaction.id = payment.sp_order_id;
+    transaction.transactionStatus = payment.transactionStatus;
+
+    const newOrderItem: IOrderItem = {
+      _id: new Types.ObjectId(),
+      orderTitle,
+      orderItems: orderItemProducts,
+      shippingAddress,
+      totalPrice,
+      transaction,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    order.productItems.push(newOrderItem);
+    order.updatedAt = new Date();
+
+    await order.save();
+
+    // update cart
+    const cart = await Cart.findOneAndUpdate(
+      { userEmail },
+      { $set: { items: [] } },
+      { new: true },
+    );
+
+    if (!cart) throw new AppError(status.NOT_FOUND, 'Cart not found');
+
+    // update product quantity
+    for (const item of orderItemProducts) {
+      const product = await Product.findById(item.productId);
+      if (!product) {
+        throw new AppError(status.NOT_FOUND, 'Product not found');
+      }
+      product.quantity -= item.quantity;
+      await product.save();
+    }
+
+    return { order, payment: payment.checkout_url };
+  }
+};
+
+// verify payment
+const verifyPayment = async (order_id: string) => {
+  const verifiedPayment = await orderUtils.verifyPaymentAsync(order_id);
+
+  if (verifiedPayment.length) {
+    await Order.findOneAndUpdate(
+      {
+        'productItems.transaction.id': order_id,
+      },
+      {
+        $set: {
+          'productItems.$.transaction.bank_status':
+            verifiedPayment[0].bank_status,
+          'productItems.$.transaction.sp_code': verifiedPayment[0].sp_code,
+          'productItems.$.transaction.sp_message':
+            verifiedPayment[0].sp_message,
+          'productItems.$.transaction.transactionStatus':
+            verifiedPayment[0].transaction_status,
+          'productItems.$.transaction.method': verifiedPayment[0].method,
+          'productItems.$.transaction.date_time': verifiedPayment[0].date_time,
+          'productItems.$.paymentStatus':
+            verifiedPayment[0].bank_status === 'Success'
+              ? 'paid'
+              : verifiedPayment[0].bank_status === 'Failed'
+                ? 'pending'
+                : verifiedPayment[0].bank_status === 'Cancel'
+                  ? 'Cancelled'
+                  : '',
+          'productItems.$.orderInvoice': verifiedPayment[0].order_id,
+        },
+      },
+      { new: true },
+    );
+  }
+
+  return verifiedPayment;
 };
 
 // Get a orders
@@ -239,6 +341,7 @@ export const OrderService = {
   getMyOrderListFromDB,
   getSingleOrderFromDB,
   createOrderIntoDB,
+  verifyPayment,
   updateOrderStatusFromDb,
   deleteSingleOrderFromDb,
   deleteAllOrderFromDb,

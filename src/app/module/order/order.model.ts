@@ -29,13 +29,34 @@ const orderItemSchema = new Schema<IOrderItem>(
       type: String,
       required: true,
     },
+    shippingAddress: {
+      type: String,
+      required: true,
+    },
     totalPrice: {
       type: Number,
       default: 0,
     },
-    status: {
+    deliverystatus: {
       type: String,
       default: 'pending',
+    },
+    paymentStatus: {
+      type: String,
+      default: 'pending',
+    },
+    orderInvoice: {
+      type: String,
+      default: '',
+    },
+    transaction: {
+      id: String,
+      transactionStatus: String,
+      bank_status: String,
+      sp_code: String,
+      sp_message: String,
+      method: String,
+      date_time: String,
     },
     isDeleted: {
       type: Boolean,

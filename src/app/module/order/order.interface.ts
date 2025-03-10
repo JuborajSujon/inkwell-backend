@@ -1,7 +1,8 @@
 import { Document, Types } from 'mongoose';
 import { ORDER_STATUS } from './order.constant';
 
-type TOrderStatusEnum = 'pending' | 'shipping';
+type TOrderDeliveryStatusEnum = 'pending' | 'shipping';
+type TPaymentStatusEnum = 'pending' | 'paid' | 'canceled';
 
 export interface ISingleOrderItem {
   _id?: Types.ObjectId;
@@ -15,9 +16,21 @@ export interface IOrderItem {
   _id?: Types.ObjectId;
   orderItems: ISingleOrderItem[];
   orderTitle: string;
-  status?: TOrderStatusEnum;
+  shippingAddress: string;
+  orderInvoice?: string;
+  paymentStatus?: TPaymentStatusEnum;
+  deliverystatus?: TOrderDeliveryStatusEnum;
   isDeleted?: boolean;
   totalPrice?: number;
+  transaction: {
+    id?: string;
+    transactionStatus?: string;
+    bank_status?: string;
+    sp_code?: string;
+    sp_message?: string;
+    method?: string;
+    date_time?: string;
+  };
   createdAt?: Date;
   updatedAt?: Date;
 }

@@ -15,6 +15,10 @@ const createOrderValidationSchema = z.object({
       )
       .min(1, 'At least one product is required'),
     orderTitle: z.string({ required_error: 'Order title is required' }),
+    shippingAddress: z.string({
+      required_error: 'Shipping address is required',
+    }),
+    cartId: z.string({ required_error: 'Cart ID is required' }).optional(),
   }),
 });
 

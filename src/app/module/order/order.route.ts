@@ -20,6 +20,12 @@ router.get(
 );
 
 router.get(
+  '/order-verify',
+  auth(USER_ROLE.user),
+  OrderController.verifyPayment,
+);
+
+router.get(
   '/:orderId',
   auth(USER_ROLE.user, USER_ROLE.admin),
   OrderController.getSingleOrder,

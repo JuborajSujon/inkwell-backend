@@ -1,5 +1,5 @@
 import { Order } from './order.model';
-import { IOrder, IOrderItem, ISingleOrderItem } from './order.interface';
+import { IOrderItem, ISingleOrderItem } from './order.interface';
 import AppError from '../../errors/AppError';
 import status from 'http-status';
 import { JwtPayload } from 'jsonwebtoken';
@@ -200,17 +200,19 @@ const verifyPayment = async (order_id: string) => {
   return verifiedPayment;
 };
 
-// Get a orders
-const getSingleOrderFromDB = async (email: Partial<IOrder>) => {
-  // get product from the database
+// Get a orders from the productItems array
+const getSingleOrderFromDB = async (orderId: string, user: JwtPayload) => {
   const query = {
-    email: email,
-    status: 'pending',
-    isDeleted: false,
+    userEmail: user.email,
+    'productItems._id': orderId,
   };
-  const order = await Order.find(query).populate('productId');
 
-  // if product not found
+  // Fetch order from DB
+  const order = await Order.findOne(query, { 'productItems.$': 1 }).populate(
+    'productItems.orderItems.productId',
+  );
+
+  // If no order is found
   if (!order) throw new AppError(status.NOT_FOUND, 'Order not found');
 
   return order;
@@ -260,44 +262,41 @@ const calculateTotalRevenue = async () => {
 };
 
 // update order status in the database
-const updateOrderStatusFromDb = async (
+const updateOrderDeliveryStatusFromDb = async (
   orderId: string,
-  updateData: Partial<IOrder>,
+  updateData: Partial<IOrderItem>,
   user: JwtPayload,
 ) => {
-  // Get order from the database
-  const order = await Order.findById(orderId);
-
-  // If order not found
-  if (!order) throw new AppError(status.NOT_FOUND, 'Order not found');
-
-  // Ensure the order status can only update admin
-  if (user?.role === 'admin') {
-    const allowedUpdates: (keyof IOrder)[] = ['status'];
-    const filteredUpdates: Partial<IOrder> = {};
-
-    for (const key of allowedUpdates) {
-      if (key in updateData) {
-        filteredUpdates[key] = updateData[key] as never;
-      }
-    }
-
-    // Update order in the database
-    const updatedOrder = await Order.findByIdAndUpdate(
-      orderId,
-      filteredUpdates,
-      {
-        new: true,
-        runValidators: true,
-      },
-    ).populate('productId');
-
-    if (!updatedOrder) throw new AppError(status.NOT_FOUND, 'Order not found');
-
-    return updatedOrder;
+  // Ensure only admin can update the status
+  if (user?.role !== 'admin') {
+    throw new AppError(status.UNAUTHORIZED, 'You are not authorized!');
   }
 
-  throw new AppError(status.UNAUTHORIZED, 'You are not authorized!');
+  // Define allowed fields to update
+  const allowedUpdates: (keyof IOrderItem)[] = ['deliverystatus'];
+  const filteredUpdates: Partial<IOrderItem> = {};
+
+  for (const key of allowedUpdates) {
+    if (key in updateData) {
+      filteredUpdates[key] = updateData[key] as never;
+    }
+  }
+
+  // Update the specific `productItems` inside the order
+  const updatedOrder = await Order.findOneAndUpdate(
+    { 'productItems._id': orderId }, // Find order by `productItems._id`
+    {
+      $set: { 'productItems.$.deliverystatus': filteredUpdates.deliverystatus },
+    }, // Update `deliverystatus` inside the array
+    { new: true, runValidators: true },
+  ).populate('productItems.orderItems.productId');
+
+  // If no matching order is found
+  if (!updatedOrder) {
+    throw new AppError(status.NOT_FOUND, 'Order not found');
+  }
+
+  return updatedOrder;
 };
 
 // delete single order from the database
@@ -342,7 +341,7 @@ export const OrderService = {
   getSingleOrderFromDB,
   createOrderIntoDB,
   verifyPayment,
-  updateOrderStatusFromDb,
+  updateOrderDeliveryStatusFromDb,
   deleteSingleOrderFromDb,
   deleteAllOrderFromDb,
 };

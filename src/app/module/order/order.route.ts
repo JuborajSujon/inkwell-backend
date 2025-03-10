@@ -26,7 +26,7 @@ router.get(
 );
 
 router.get(
-  '/:orderId',
+  '/single-order/:orderId',
   auth(USER_ROLE.user, USER_ROLE.admin),
   OrderController.getSingleOrder,
 );

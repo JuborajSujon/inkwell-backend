@@ -98,7 +98,7 @@ const updateOrderStatus = catchAsync(async (req: Request, res: Response) => {
   if (!user) throw new AppError(status.UNAUTHORIZED, 'You are not authorized!');
 
   // Update order status in the database (only admin can update order status)
-  const result = await OrderService.updateOrderStatusFromDb(
+  const result = await OrderService.updateOrderDeliveryStatusFromDb(
     orderId,
     req.body,
     user,

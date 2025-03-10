@@ -28,7 +28,6 @@ const getMyOrderList = catchAsync(async (req: Request, res: Response) => {
 const createOrder = catchAsync(async (req: Request, res: Response) => {
   // Get order data from request body
   const orderData = req.body;
-  console.log(orderData);
   // Get user data from request body
   const user = req.user as JwtPayload;
 

@@ -9,14 +9,20 @@ const router = express.Router();
 
 router.post(
   '/create-order',
-  auth(USER_ROLE.user, USER_ROLE.admin),
+  auth(USER_ROLE.user),
   validateRequest(OrderValidation.createOrderValidationSchema),
   OrderController.createOrder,
 );
 router.get(
   '/my-order-list',
-  auth(USER_ROLE.user, USER_ROLE.admin),
+  auth(USER_ROLE.user),
   OrderController.getMyOrderList,
+);
+
+router.get(
+  '/all-order-list',
+  auth(USER_ROLE.admin),
+  OrderController.getAllOrderList,
 );
 
 router.get(
@@ -27,7 +33,7 @@ router.get(
 
 router.get(
   '/single-order/:orderId',
-  auth(USER_ROLE.user, USER_ROLE.admin),
+  auth(USER_ROLE.user),
   OrderController.getSingleOrder,
 );
 
@@ -40,14 +46,13 @@ router.patch(
 
 router.delete(
   '/delete-single-order/:orderId',
-  auth(USER_ROLE.user, USER_ROLE.admin),
+  auth(USER_ROLE.user),
   OrderController.deleteSingleOrder,
 );
 router.delete(
   '/delete-all-order',
-  auth(USER_ROLE.user, USER_ROLE.admin),
+  auth(USER_ROLE.user),
   OrderController.deleteAllOrder,
 );
-router.get('/revenue', auth(USER_ROLE.admin), OrderController.calculateRevenue);
 
 export const OrderRoutes = router;

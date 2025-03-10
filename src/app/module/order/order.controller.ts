@@ -8,6 +8,20 @@ import { JwtPayload } from 'jsonwebtoken';
 import AppError from '../../errors/AppError';
 
 // get all orders
+const getAllOrderList = catchAsync(async (req: Request, res: Response) => {
+  // Fetch orders from the database
+  const result = await OrderService.getAllOrderListFromDB();
+
+  // Send response
+  sendResponse(res, {
+    statusCode: status.OK,
+    success: true,
+    message: 'Order list retrieved successfully',
+    data: result,
+  });
+});
+
+// get my all orders
 const getMyOrderList = catchAsync(async (req: Request, res: Response) => {
   // Get order data from request body
   const user = req.user as JwtPayload;
@@ -74,20 +88,6 @@ const getSingleOrder = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-// calculate order revenue
-const calculateRevenue = catchAsync(async (req: Request, res: Response) => {
-  // get total revenue
-  const result = await OrderService.calculateTotalRevenue();
-
-  // Send response
-  sendResponse(res, {
-    statusCode: status.OK,
-    success: true,
-    message: 'Order created successfully',
-    data: result,
-  });
-});
-
 // update order status
 const updateOrderStatus = catchAsync(async (req: Request, res: Response) => {
   // Get order data from request body
@@ -98,7 +98,7 @@ const updateOrderStatus = catchAsync(async (req: Request, res: Response) => {
   if (!user) throw new AppError(status.UNAUTHORIZED, 'You are not authorized!');
 
   // Update order status in the database (only admin can update order status)
-  const result = await OrderService.updateOrderDeliveryStatusFromDb(
+  const result = await OrderService.updateOrderDeliveryStatusFromDB(
     orderId,
     req.body,
     user,
@@ -123,7 +123,7 @@ const deleteSingleOrder = catchAsync(async (req: Request, res: Response) => {
   if (!user) throw new AppError(status.UNAUTHORIZED, 'You are not authorized!');
 
   // Create a new order
-  const result = await OrderService.deleteSingleOrderFromDb(orderId, user);
+  const result = await OrderService.deleteSingleOrderFromDB(orderId, user);
 
   // Send response
   sendResponse(res, {
@@ -137,8 +137,6 @@ const deleteSingleOrder = catchAsync(async (req: Request, res: Response) => {
 // delete order
 const deleteAllOrder = catchAsync(async (req: Request, res: Response) => {
   // Get order data from request body
-  const { orderId } = req.params;
-
   const user = req?.user as JwtPayload;
 
   if (!user) throw new AppError(status.UNAUTHORIZED, 'You are not authorized!');
@@ -146,7 +144,7 @@ const deleteAllOrder = catchAsync(async (req: Request, res: Response) => {
   // delete order from the database
   // const result = await OrderService.deleteAddToCart(orderId, user);
 
-  const result = await OrderService.deleteAllOrderFromDb(orderId, user);
+  const result = await OrderService.deleteAllOrderFromDB(user);
 
   // Send response
   sendResponse(res, {
@@ -158,6 +156,7 @@ const deleteAllOrder = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const OrderController = {
+  getAllOrderList,
   getMyOrderList,
   getSingleOrder,
   createOrder,
@@ -165,5 +164,4 @@ export const OrderController = {
   updateOrderStatus,
   deleteSingleOrder,
   deleteAllOrder,
-  calculateRevenue,
 };

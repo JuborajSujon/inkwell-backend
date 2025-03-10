@@ -3,7 +3,6 @@ import { IOrderItem, ISingleOrderItem } from './order.interface';
 import AppError from '../../errors/AppError';
 import status from 'http-status';
 import { JwtPayload } from 'jsonwebtoken';
-import { ORDER_STATUS_CODE } from './order.constant';
 import { Product } from '../product/product.model';
 import mongoose, { Types } from 'mongoose';
 import { User } from '../user/user.model';
@@ -11,6 +10,16 @@ import { orderUtils } from './order.utils';
 import { Cart } from '../addToCart/cart.model';
 
 // Get all orders
+const getAllOrderListFromDB = async () => {
+  // Fetch orders from the database, populate the orderItems
+  const orders = await Order.find().populate(
+    'productItems.orderItems.productId',
+  );
+
+  return orders;
+};
+
+// Get my all orders
 const getMyOrderListFromDB = async (email: string) => {
   const query = {
     userEmail: email, // search for orders with the user's email
@@ -158,7 +167,7 @@ const createOrderIntoDB = async (
       await product.save();
     }
 
-    return { order, payment: payment.checkout_url };
+    return payment.checkout_url;
   }
 };
 
@@ -218,51 +227,8 @@ const getSingleOrderFromDB = async (orderId: string, user: JwtPayload) => {
   return order;
 };
 
-// Calculate total revenue from all orders
-// const calculateTotalRevenue = async () => {
-//   const result = await Order.aggregate([
-//     // calculate total revenue
-//     {
-//       $group: {
-//         _id: null,
-//         totalRevenue: { $sum: '$totalPrice' },
-//       },
-//     },
-//   ]);
-
-//   // get total revenue from the result
-//   const totalRevenue = result[0]?.totalRevenue || 0;
-//   return totalRevenue;
-// };
-
-const calculateTotalRevenue = async () => {
-  const result = await Order.aggregate([
-    {
-      $group: {
-        _id: '$status', // Group by order status
-        totalRevenue: { $sum: '$totalPrice' },
-      },
-    },
-  ]);
-
-  // Initialize revenue object with default values
-  const revenueByStatus: Record<string, number> = {
-    [ORDER_STATUS_CODE.pending]: 0,
-    [ORDER_STATUS_CODE.shipping]: 0,
-  };
-
-  // Populate the object with actual data
-  result.forEach(({ _id, totalRevenue }) => {
-    if (_id in revenueByStatus) {
-      revenueByStatus[_id] = totalRevenue;
-    }
-  });
-
-  return revenueByStatus;
-};
-
 // update order status in the database
-const updateOrderDeliveryStatusFromDb = async (
+const updateOrderDeliveryStatusFromDB = async (
   orderId: string,
   updateData: Partial<IOrderItem>,
   user: JwtPayload,
@@ -300,48 +266,43 @@ const updateOrderDeliveryStatusFromDb = async (
 };
 
 // delete single order from the database
-const deleteSingleOrderFromDb = async (orderId: string, user: JwtPayload) => {
-  // get product from the database
-  const order = await Order.findById(orderId);
+const deleteSingleOrderFromDB = async (orderId: string, user: JwtPayload) => {
+  const updatedOrder = await Order.findOneAndUpdate(
+    { userEmail: user.email },
+    { $pull: { productItems: { _id: orderId } } },
+    { new: true },
+  ).populate('productItems.orderItems.productId');
 
-  // if product not found
-  if (!order) throw new AppError(status.NOT_FOUND, 'Order not found');
+  if (!updatedOrder) {
+    throw new AppError(status.NOT_FOUND, 'Order not found or already deleted');
+  }
 
-  // Ensure the user can only delete their own order
-  if (order?.userEmail !== user?.email)
-    throw new AppError(status.UNAUTHORIZED, 'You are not authorized!');
-  // delete order from the database
-
-  const result = {};
-
-  return result;
+  return updatedOrder;
 };
 
 // delete order from the database
-const deleteAllOrderFromDb = async (orderId: string, user: JwtPayload) => {
-  // get product from the database
-  const order = await Order.findById(orderId);
+const deleteAllOrderFromDB = async (user: JwtPayload) => {
+  const updatedOrder = await Order.findOneAndUpdate(
+    { userEmail: user.email },
+    { $set: { productItems: [] } },
+    { new: true },
+  );
 
-  // if product not found
-  if (!order) throw new AppError(status.NOT_FOUND, 'Order not found');
+  // If no order is found or updated
+  if (!updatedOrder) {
+    throw new AppError(status.NOT_FOUND, 'Order not found or already deleted');
+  }
 
-  // Ensure the user can only delete their own order
-  if (order?.userEmail !== user?.email)
-    throw new AppError(status.UNAUTHORIZED, 'You are not authorized!');
-
-  // delete order from the database
-  const deletedOrder = await Order.findByIdAndDelete(orderId);
-
-  return deletedOrder;
+  return updatedOrder;
 };
 
 export const OrderService = {
-  calculateTotalRevenue,
+  getAllOrderListFromDB,
   getMyOrderListFromDB,
   getSingleOrderFromDB,
   createOrderIntoDB,
   verifyPayment,
-  updateOrderDeliveryStatusFromDb,
-  deleteSingleOrderFromDb,
-  deleteAllOrderFromDb,
+  updateOrderDeliveryStatusFromDB,
+  deleteSingleOrderFromDB,
+  deleteAllOrderFromDB,
 };

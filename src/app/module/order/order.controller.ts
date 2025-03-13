@@ -10,7 +10,7 @@ import AppError from '../../errors/AppError';
 // get all orders
 const getAllOrderList = catchAsync(async (req: Request, res: Response) => {
   // Fetch orders from the database
-  const result = await OrderService.getAllOrderListFromDB();
+  const result = await OrderService.getAllOrderListFromDB(req.query);
 
   // Send response
   sendResponse(res, {

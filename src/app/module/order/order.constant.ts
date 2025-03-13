@@ -3,3 +3,11 @@ export const ORDER_STATUS_CODE = {
   shipping: 'shipping',
 } as const;
 export const ORDER_STATUS = ['pending', 'shipping'] as const;
+
+export const orderSearchableFields = [
+  'userEmail',
+  'orderTitle',
+  'deliverystatus',
+  'paymentStatus',
+  'orderInvoice',
+];

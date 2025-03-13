@@ -10,13 +10,106 @@ import { orderUtils } from './order.utils';
 import { Cart } from '../addToCart/cart.model';
 
 // Get all orders
-const getAllOrderListFromDB = async () => {
-  // Fetch orders from the database, populate the orderItems
-  const orders = await Order.find().populate(
-    'productItems.orderItems.productId',
-  );
+const getAllOrderListFromDB = async (query: Record<string, unknown>) => {
+  const aggregationPipeline: mongoose.PipelineStage[] = [
+    {
+      $unwind: {
+        path: '$productItems',
+        preserveNullAndEmptyArrays: true, // Ensure orders without productItems are kept
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        userEmail: 1,
+        'productItems._id': 1,
+        'productItems.orderTitle': 1,
+        'productItems.shippingAddress': 1,
+        'productItems.totalPrice': 1,
+        'productItems.deliverystatus': 1,
+        'productItems.paymentStatus': 1,
+        'productItems.orderInvoice': 1,
+        'productItems.isDeleted': 1,
+        'productItems.createdAt': 1,
+        'productItems.updatedAt': 1,
+        'productItems.orderItems': 1,
+        'productItems.transaction': {
+          $ifNull: [
+            '$productItems.transaction',
+            {
+              id: '$productItems.orderInvoice',
+              transactionStatus: null,
+              bank_status: 'Success',
+              date_time: new Date().toISOString(),
+              method: 'Nagad',
+              sp_code: '1000',
+              sp_message: 'Success',
+            },
+          ],
+        },
+      },
+    },
+  ];
 
-  return orders;
+  // Apply search, filter, sort, pagination manually for aggregation
+  if (query.searchTerm) {
+    const searchRegex = { $regex: query.searchTerm, $options: 'i' };
+
+    aggregationPipeline.push({
+      $match: {
+        $or: [
+          { userEmail: searchRegex },
+          { 'productItems.orderTitle': searchRegex },
+          { 'productItems.deliverystatus': searchRegex },
+          { 'productItems.paymentStatus': searchRegex },
+          { 'productItems.orderInvoice': searchRegex },
+        ],
+      },
+    });
+  }
+
+  // Apply filter if query contains filter conditions
+  if (query.filter) {
+    aggregationPipeline.push({
+      $match: query.filter,
+    });
+  }
+
+  // Apply sorting
+  if (query.sort) {
+    const sortField = query.sort as string;
+    const sortOrder = query.order === 'desc' ? -1 : 1;
+    aggregationPipeline.push({
+      $sort: { [sortField]: sortOrder },
+    });
+  }
+
+  // Pagination: Skip & Limit
+  const page = query.page ? parseInt(query.page as string, 10) : 1;
+  const limit = query.limit ? parseInt(query.limit as string, 10) : 10;
+  const skip = (page - 1) * limit;
+
+  aggregationPipeline.push({ $skip: skip });
+  aggregationPipeline.push({ $limit: limit });
+
+  // Execute aggregation
+  const result = await Order.aggregate(aggregationPipeline);
+
+  // Count total orders (without pagination)
+  const countPipeline = [...aggregationPipeline];
+  countPipeline.push({ $count: 'total' });
+  const countResult = await Order.aggregate(countPipeline);
+  const totalRecords = countResult.length ? countResult[0].total : 0;
+
+  return {
+    result,
+    meta: {
+      total: totalRecords,
+      page,
+      limit,
+      totalPages: Math.ceil(totalRecords / limit),
+    },
+  };
 };
 
 // Get my all orders
@@ -151,7 +244,7 @@ const createOrderIntoDB = async (
     // update cart
     const cart = await Cart.findOneAndUpdate(
       { userEmail },
-      { $set: { items: [] } },
+      { $set: { items: [], totalPrice: 0 } },
       { new: true },
     );
 

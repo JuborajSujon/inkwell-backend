@@ -10,42 +10,170 @@ import { orderUtils } from './order.utils';
 import { Cart } from '../addToCart/cart.model';
 
 // Get all orders
+// const getAllOrderListFromDB = async (query: Record<string, unknown>) => {
+//   const aggregationPipeline: mongoose.PipelineStage[] = [
+//     {
+//       $unwind: {
+//         path: '$productItems',
+//         preserveNullAndEmptyArrays: true, // Ensure orders without productItems are kept
+//       },
+//     },
+//     {
+//       $project: {
+//         _id: 1,
+//         userEmail: 1,
+//         'productItems._id': 1,
+//         'productItems.orderTitle': 1,
+//         'productItems.shippingAddress': 1,
+//         'productItems.totalPrice': 1,
+//         'productItems.deliverystatus': 1,
+//         'productItems.paymentStatus': 1,
+//         'productItems.orderInvoice': 1,
+//         'productItems.isDeleted': 1,
+//         'productItems.createdAt': 1,
+//         'productItems.updatedAt': 1,
+//         'productItems.orderItems': 1,
+//         'productItems.transaction': {
+//           $ifNull: [
+//             '$productItems.transaction',
+//             {
+//               id: '$productItems.orderInvoice',
+//               transactionStatus: null,
+//               bank_status: 'failed',
+//               date_time: new Date().toISOString(),
+//               method: 'COD',
+//               sp_code: '1000',
+//               sp_message: 'failed',
+//             },
+//           ],
+//         },
+//       },
+//     },
+//   ];
+
+//   // Apply search, filter, sort, pagination manually for aggregation
+//   if (query.searchTerm) {
+//     const searchRegex = { $regex: query.searchTerm, $options: 'i' };
+
+//     aggregationPipeline.push({
+//       $match: {
+//         $or: [
+//           { userEmail: searchRegex },
+//           { 'productItems.orderTitle': searchRegex },
+//           { 'productItems.deliverystatus': searchRegex },
+//           { 'productItems.paymentStatus': searchRegex },
+//           { 'productItems.orderInvoice': searchRegex },
+//         ],
+//       },
+//     });
+//   }
+
+//   // Apply filter if query contains filter conditions
+//   if (query.filter) {
+//     aggregationPipeline.push({
+//       $match: query.filter,
+//     });
+//   }
+
+//   // Apply sorting
+//   if (query.sort) {
+//     const sortField = query.sort as string;
+//     const sortOrder = query.order === 'desc' ? -1 : 1;
+//     aggregationPipeline.push({
+//       $sort: { [sortField]: sortOrder },
+//     });
+//   }
+
+//   // Pagination: Skip & Limit
+//   const page = query.page ? parseInt(query.page as string, 10) : 1;
+//   const limit = query.limit ? parseInt(query.limit as string, 10) : 10;
+//   const skip = (page - 1) * limit;
+
+//   aggregationPipeline.push({ $skip: skip });
+//   aggregationPipeline.push({ $limit: limit });
+
+//   // Execute aggregation
+//   const result = await Order.aggregate(aggregationPipeline);
+
+//   // Count total orders (without pagination)
+//   const countPipeline = [...aggregationPipeline];
+//   countPipeline.push({ $count: 'total' });
+//   const countResult = await Order.aggregate(countPipeline);
+//   const totalRecords = countResult.length ? countResult[0].total : 0;
+
+//   return {
+//     result,
+//     meta: {
+//       total: totalRecords,
+//       page,
+//       limit,
+//       totalPages: Math.ceil(totalRecords / limit),
+//     },
+//   };
+// };
+
 const getAllOrderListFromDB = async (query: Record<string, unknown>) => {
   const aggregationPipeline: mongoose.PipelineStage[] = [
+    // Unwind productItems to process each productItem individually
     {
       $unwind: {
         path: '$productItems',
         preserveNullAndEmptyArrays: true, // Ensure orders without productItems are kept
       },
     },
+    // Unwind orderItems to process each orderItem individually
+    {
+      $unwind: {
+        path: '$productItems.orderItems',
+        preserveNullAndEmptyArrays: true, // Ensure productItems without orderItems are kept
+      },
+    },
+    // Lookup productDetails for each orderItem
+    {
+      $lookup: {
+        from: 'products', // The collection to join with
+        localField: 'productItems.orderItems.productId', // Field from the input documents
+        foreignField: '_id', // Field from the documents of the "from" collection
+        as: 'productItems.orderItems.productDetails', // Output array field
+      },
+    },
+    // Unwind productDetails to merge it with orderItems
+    {
+      $unwind: {
+        path: '$productItems.orderItems.productDetails',
+        preserveNullAndEmptyArrays: true, // Ensure orderItems without productDetails are kept
+      },
+    },
+    // Group back to reconstruct the orderItems array for each productItem
+    {
+      $group: {
+        _id: {
+          orderId: '$_id',
+          productItemId: '$productItems._id', // Group by productItem ID to keep them separate
+        },
+        userEmail: { $first: '$userEmail' },
+        productItems: { $first: '$productItems' },
+        orderItems: { $push: '$productItems.orderItems' },
+      },
+    },
+    // Reshape the document to include the reconstructed orderItems array
     {
       $project: {
-        _id: 1,
+        _id: '$_id.orderId',
         userEmail: 1,
-        'productItems._id': 1,
-        'productItems.orderTitle': 1,
-        'productItems.shippingAddress': 1,
-        'productItems.totalPrice': 1,
-        'productItems.deliverystatus': 1,
-        'productItems.paymentStatus': 1,
-        'productItems.orderInvoice': 1,
-        'productItems.isDeleted': 1,
-        'productItems.createdAt': 1,
-        'productItems.updatedAt': 1,
-        'productItems.orderItems': 1,
-        'productItems.transaction': {
-          $ifNull: [
-            '$productItems.transaction',
-            {
-              id: '$productItems.orderInvoice',
-              transactionStatus: null,
-              bank_status: 'Success',
-              date_time: new Date().toISOString(),
-              method: 'Nagad',
-              sp_code: '1000',
-              sp_message: 'Success',
-            },
-          ],
+        productItems: {
+          _id: '$productItems._id',
+          orderTitle: '$productItems.orderTitle',
+          shippingAddress: '$productItems.shippingAddress',
+          totalPrice: '$productItems.totalPrice',
+          deliverystatus: '$productItems.deliverystatus',
+          paymentStatus: '$productItems.paymentStatus',
+          orderInvoice: '$productItems.orderInvoice',
+          isDeleted: '$productItems.isDeleted',
+          createdAt: '$productItems.createdAt',
+          updatedAt: '$productItems.updatedAt',
+          transaction: '$productItems.transaction',
+          orderItems: '$orderItems',
         },
       },
     },
@@ -63,6 +191,7 @@ const getAllOrderListFromDB = async (query: Record<string, unknown>) => {
           { 'productItems.deliverystatus': searchRegex },
           { 'productItems.paymentStatus': searchRegex },
           { 'productItems.orderInvoice': searchRegex },
+          { 'productItems.shippingAddress': searchRegex },
         ],
       },
     });

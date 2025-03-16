@@ -9,13 +9,13 @@ const router = express.Router();
 
 router.post(
   '/create-order',
-  auth(USER_ROLE.user),
+  auth(USER_ROLE.user, USER_ROLE.admin),
   validateRequest(OrderValidation.createOrderValidationSchema),
   OrderController.createOrder,
 );
 router.get(
   '/my-order-list',
-  auth(USER_ROLE.user),
+  auth(USER_ROLE.user, USER_ROLE.admin),
   OrderController.getMyOrderList,
 );
 
@@ -27,13 +27,13 @@ router.get(
 
 router.get(
   '/order-verify',
-  auth(USER_ROLE.user),
+  auth(USER_ROLE.user, USER_ROLE.admin),
   OrderController.verifyPayment,
 );
 
 router.get(
   '/single-order/:orderId',
-  auth(USER_ROLE.user),
+  auth(USER_ROLE.user, USER_ROLE.admin),
   OrderController.getSingleOrder,
 );
 
@@ -46,12 +46,12 @@ router.patch(
 
 router.delete(
   '/delete-single-order/:orderId',
-  auth(USER_ROLE.user),
+  auth(USER_ROLE.user, USER_ROLE.admin),
   OrderController.deleteSingleOrder,
 );
 router.delete(
   '/delete-all-order',
-  auth(USER_ROLE.user),
+  auth(USER_ROLE.user, USER_ROLE.admin),
   OrderController.deleteAllOrder,
 );
 

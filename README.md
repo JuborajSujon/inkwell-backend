@@ -1,29 +1,21 @@
-# Stationery Shop Application
+# Inkwell Backend
 
 ## Overview
 
-The Stationery Shop Application is a web-based API built with Node.js, Express, TypeScript, and MongoDB using Mongoose. It manages stationery products and orders, offering robust CRUD functionality and additional inventory management features.
+The Stationery Shop Application is a web-based API built with Node.js, Express, TypeScript, and MongoDB using Mongoose. It manages stationery users, products, cart and orders, offering robust CRUD functionality and additional inventory management features.
 
 ---
 
 ## Features
 
-### Stationery Products Management
-
-1. **Create Products:** Add new stationery products with details like name, brand, price, category, description, quantity, and stock status.
-2. **View Products:** Retrieve all products or filter by name, brand, or category using query parameters.
-3. **View Product by ID:** Fetch detailed information about a specific product.
-4. **Update Products:** Modify product details such as price, quantity, or description.
-5. **Delete Products:** Remove products from the database.
-
-### Order Management
-
-1. **Place Orders:** Create orders by specifying customer email, product ID, quantity, and total price.
-
-- Automatically updates inventory and stock status.
-- Handles insufficient stock with appropriate error messages.
-
-2. **Calculate Revenue:** Aggregates total revenue from all orders using MongoDB's aggregation pipeline.
+- Express.js for building web servers and APIs
+- TypeScript for type safety and maintainability
+- Mongoose for MongoDB interaction
+- Zod for schema validation
+- JSON Web Tokens (JWT) for secure authentication
+- Prettier and ESLint for code formatting and linting
+- Development and production environments
+- Error handling and logging
 
 ## Error Handling
 
@@ -60,13 +52,13 @@ Ensure you have the following dependencies installed:
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/JuborajSujon/stationery-shop
+git clone https://github.com/JuborajSujon/inkwell-backend
 ```
 
 2. Navigate to the project directory:
 
 ```bash
-cd stationery-shop
+cd inkwell-backend
 ```
 
 3. Install dependencies:
@@ -81,6 +73,18 @@ npm install
 NODE_ENV=development
 PORT=5000
 DATABASE_URL=mongodb://localhost:27017/stationery-shop
+BCRYPT_SALT_ROUNDS=8
+JWT_ACCESS_SECRET= your-very-secure-jwt-secret
+JWT_REFRESH_SECRET= your-very-secure-refresh-token-secret
+JWT_ACCESS_EXPIRES_IN=10d
+JWT_REFRESH_EXPIRES_IN=365d
+RESET_PASSWORD_UI_LINK=http://localhost:5000 (your-client-home-url)
+
+SP_ENDPOINT=https://sandbox.shurjopayment.com
+SP_USERNAME=sp_sandbox
+SP_PASSWORD=pyyk97hu&6u6
+SP_PREFIX=SP
+SP_RETURN_URL=http://localhost:5173/dashboard/orders/verify-order (replace with your-client-home-url)
 ```
 
 5. Run the Application Start the server in development mode:
@@ -101,31 +105,26 @@ For production:
 npm run start
 ```
 
-7. API Testing Use tools like Postman or cURL to test the following endpoints.
+## Dependencies
 
----
+### Core Dependencies
 
-## API Endpoints
+- [axios](https://www.npmjs.com/package/axios)
+- [bcrypt](https://www.npmjs.com/package/bcrypt)
+- [cors](https://www.npmjs.com/package/cors)
+- [dotenv](https://www.npmjs.com/package/dotenv)
+- [express](https://www.npmjs.com/package/express)
+- [joi](https://www.npmjs.com/package/joi)
+- [jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken)
+- [mongoose](https://www.npmjs.com/package/mongoose)
+- [zod](https://www.npmjs.com/package/zod)
 
-### Stationery Products
+### Development Dependencies
 
-| Method | Endpoint                          | Description                                                |
-| :----- | :-------------------------------- | :--------------------------------------------------------- |
-| POST   | /api/products                     | Create a new product.                                      |
-| GET    | /api/products                     | Get all products.                                          |
-| GET    | /api/products?searchTerm=category | Get all products.(searchTerm can be name, brand, category) |
-| GET    | /api/products/:id                 | Get a specific product.                                    |
-| PUT    | /api/products/:id                 | Update a product.                                          |
-| DELETE | /api/products/:id                 | Delete a product.                                          |
-
-### Order Management
-
-| Method | Endpoint            | Description        |
-| :----- | :------------------ | :----------------- |
-| Post   | /api/orders         | Place a new order. |
-| Get    | /api/orders/revenue | Get total revenue. |
-
----
+- [TypeScript](https://www.npmjs.com/package/typescript)
+- [ESLint](https://www.npmjs.com/package/eslint)
+- [Prettier](https://www.npmjs.com/package/prettier)
+- [ts-node-dev](https://www.npmjs.com/package/ts-node-dev)
 
 ## Contributing
 
@@ -152,3 +151,14 @@ git push origin my-feature
 ## License
 
 This project is licensed under the ISC License.
+
+## Contact
+
+If you have any questions or suggestions, feel free to reach out:
+
+- **Email**: mdSujon72@gmail.com
+- **GitHub**: [Juboraj Sujon](https://github.com/JuborajSujon)
+
+---
+
+### Happy Coding! ✨

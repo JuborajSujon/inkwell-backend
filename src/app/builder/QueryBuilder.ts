@@ -62,7 +62,7 @@ class QueryBuilder<T> {
     }
 
     // Handle category filtering (Ignore if "All Categories" is selected)
-    if (queryObj.category && queryObj.category !== 'all') {
+    if (queryObj.category && queryObj.category !== 'All') {
       filterQuery.category = queryObj.category;
     }
 

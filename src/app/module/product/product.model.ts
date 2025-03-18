@@ -43,7 +43,7 @@ const productSchema = new Schema<TProduct>(
       type: String,
       required: [true, 'Product description is required'],
       trim: true,
-      maxlength: [500, 'Product description must be less than 500 characters'],
+      maxlength: [5000, 'Product description must be less than 500 characters'],
     },
     model: {
       type: String,
@@ -53,7 +53,7 @@ const productSchema = new Schema<TProduct>(
     },
     photo: {
       type: String,
-      required: [true, 'Product photo is required'],
+      default: '',
     },
     quantity: {
       type: Number,
